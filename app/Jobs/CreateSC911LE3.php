@@ -36,7 +36,7 @@ class CreateSC911LE3 extends Job
 
         /** TODO - add backup and then truncate */
 
-        $this->dbextensionsObj->truncate($this->destinationTable);
+        $this->dbextensionsObj->truncate('class');
 
 
         $acad_terms_cd = array_map(function ($item) {
@@ -45,14 +45,16 @@ class CreateSC911LE3 extends Job
 
         /**
          * iterate through each acad term and retrieve 200 records each loop
-         *
+         * Choose lowest chunk size so that the data can be read - job crashes on low memory
          */
-        collect($acad_terms_cd)->each(function ($acadTerm) {
+        $chunksize = 50;
+
+        collect($acad_terms_cd)->each(function ($acadTerm) use ($chunksize) {
 
             $start_at = 0;
             $number_read = 0;
             $total = 0;
-            $end_at = $this->chunk_size;
+            $end_at = $chunksize;
 
             do {
 
@@ -71,47 +73,51 @@ class CreateSC911LE3 extends Job
                     $data = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
 
+                    /** @var Collection - pluck the desired column and filter where value is not null or not empty
+                     * $combined_section_ids */
+                    $combined_section_ids = collect($data)->pluck('cls_cmb_sect_id')->filter(function ($item) {
+                        return isset($item) && $item != "";
+                    })->toArray();
 
-                    $combined_section_ids = ArrayHelpers::array_extract_filter($data, 'cls_cmb_sect_id',
-                        function ($item) {
-                            return isset($item) && $item != "";
-                        });
 
-                    $class_session_cds = ArrayHelpers::array_extract_filter($data, 'cls_sesn_cd',
-                        function ($item) {
-                            return isset($item) && $item != "";
-
-                        });
+                    $class_session_cds = collect($data)->pluck('cls_sesn_cd')->filter(function ($item) {
+                        return isset($item) && $item != "";
+                    })->toArray();
 
 
                     /** @var  getcombinedsection before inserting data  $row */
                     // Contains enrollment numbers.
-                    $combined_secition_info = $this->getCombSectInfo($acadTerm, $combined_section_ids, $class_session_cds);
+
+                    // $combined_section_info = $this->getCombSectInfo($acadTerm, $combined_section_ids, $class_session_cds);
+                    $insert_rows = "";
                     foreach ($data as $row) {
 
                         $comb_section_id = $row['cls_cmb_sect_id'];
                         $class_sess_cd = $row['cls_sesn_cd'];
                         $cls_nbr = $row['cls_nbr'];
 
+
+                        //TODO: check Combined Section - understand the concept
                         $CS_CLS_DRVD_ENRL_CNT = 0;
                         $CS_CLS_ENRL_CPCTY_NBR = 0;
+                        /*  $CS_CLS_DRVD_ENRL_CNT = 0;
+                          $CS_CLS_ENRL_CPCTY_NBR = 0;
 
+                          collect($combined_section_info)
+                              ->each(function ($item) use (
+                                  $comb_section_id, $class_sess_cd, $cls_nbr,
+                                  &$CS_CLS_DRVD_ENRL_CNT, &$CS_CLS_ENRL_CPCTY_NBR
+                              ) {
 
-                        collect($combined_secition_info)
-                            ->each(function ($item) use (
-                                $comb_section_id, $class_sess_cd, $cls_nbr,
-                                &$CS_CLS_DRVD_ENRL_CNT, &$CS_CLS_ENRL_CPCTY_NBR
-                            ) {
+                                  /** Compute enrollment numbers */
+                        //  if ($item->cls_sesn_cd == $class_sess_cd &&
+                        //      $item->cls_cmb_sect_id == $comb_section_id
+                        // ) {
 
-                                /** Compute enrollment numbers */
-                                if ($item->cls_sesn_cd == $class_sess_cd &&
-                                    $item->cls_cmb_sect_id == $comb_section_id
-                                ) {
-
-                                    $CS_CLS_DRVD_ENRL_CNT += $item->cls_drvd_enrl_cnt;
-                                    $CS_CLS_ENRL_CPCTY_NBR = $item->cls_enrl_cpcty_nbr;
-                                }
-                            });
+                        //     $CS_CLS_DRVD_ENRL_CNT += $item->cls_drvd_enrl_cnt;
+                        //    $CS_CLS_ENRL_CPCTY_NBR = $item->cls_enrl_cpcty_nbr;
+                        //  }
+                        // });
 
                         //cls_cnst_typ_req_cd == 'D', I
                         if ($row['cls_cnst_typ_req_cd'] == 'D' || $row['cls_cnst_typ_req_cd'] == 'I')
@@ -143,54 +149,54 @@ class CreateSC911LE3 extends Job
                             $row['facil_bldg_rm_nbr'] = SUBSTR($row['facil_bldg_rm_nbr'], 3, 8);
                         }
 
-                        if($row['facil_bldg_cd']=="")
-                           $row['facil_bldg_cd']="ARR";
+                        if ($row['facil_bldg_cd'] == "")
+                            $row['facil_bldg_cd'] = "ARR";
 
-                        if($row['cls_drvd_mtg_ptrn_cd']=="")
-                            $row['cls_drvd_mtg_ptrn_cd']="ARR";
+                        if ($row['cls_drvd_mtg_ptrn_cd'] == "")
+                            $row['cls_drvd_mtg_ptrn_cd'] = "ARR";
 
 
                         //Format Instructor Name
                         $row['formatted_instructor_name'] = $this->formatInstructorName($row['cls_instr_nm']);
 
                         /** Attributes */
-                        $row['crs_attrib_clst_cd']=substr($row['crs_attrib_val_cd'],7,3);
+                        $row['crs_attrib_clst_cd'] = substr($row['crs_attrib_val_cd'], 7, 3);
 
-                        $insert_rows[]=$row;
+                        $insert_rows[] = $row;
 
 
                     }
 
-                    $this->dbextensionsObj->insert($this->destinationTable, collect($insert_rows),
+
+                    $this->dbextensionsObj->insert($this->destinationTable,
+                        collect($insert_rows),
                         function ($item) {
-
-                            // Map - key =>value pairs and flat as the map returns an array(array)
-                            return (collect($item)->map(function($value,$key){
-                                if($key!='rn')
-                                    return[$key=>$value];
-
+                            // Map - key => value pairs and flat as the map returns an array(array)
+                            return (collect($item)->map(function ($value, $key) {
+                                if ($key != 'rn')
+                                    return [$key => $value];
                                 return [];
-                            })->flatMap(function($item){
-                                if($item!="")
-                                return $item;
+                            })->flatMap(function ($item) {
+                                if ($item != "")
+                                    return $item;
                             })->toArray());
 
-
-                        });
+                        }, $chunksize);
 
                     /** Compute data pointers */
                     $number_read = count($data);
                     $total += $number_read;
                     $start_at += $number_read;
-                    $end_at += $this->chunk_size;
-
+                    $end_at += $chunksize;
+                    echo 'Number Read - ' . $number_read . " Total - " . $total;
+                    echo PHP_EOL;
 
                 }
 
 
-            } while ($number_read >= $this->chunk_size);
+            } while ($number_read >= $chunksize);
 
-
+            echo PHP_EOL . 'ACAD TERM ' . $acadTerm;
         });
 
     }
@@ -206,14 +212,9 @@ class CreateSC911LE3 extends Job
         A.CRSOFR_NBR,
         A.CLS_SECT_CD,
         A.ACAD_TERM_CD,
-        A.ACAD_TERM_DESC,
-        A.INST_CD,
-        A.INST_DESC,
         A.CLS_SESN_CD,
         A.CLS_DRVD_SESN_CD,
         A.CLS_SESN_DESC,
-        DECODE(A.CLS_SESN_CD,
-        'IS1','10','IS2','20','IS3','30','IS4','40','IS5','50','00') AS SORT_SESN,
         A.CMP_LOC_CD,
         A.ACAD_GRP_CD,
         A.ACAD_GRP_DESC,
@@ -388,6 +389,19 @@ class CreateSC911LE3 extends Job
         return " order by rownum";
     }
 
+    protected function formatInstructorName($name)
+    {
+        $comma_pos = strpos($name, ",");
+
+        // If there is a comma
+        if ($comma_pos !== false) {
+            return substr($name, 0, $comma_pos) . " " . substr($name, $comma_pos + 1, 1);
+        }
+
+        return $name;
+
+    }
+
     /***
      * Function contains code in the procedure - GetCombSectInfo
      * @param $acad_term
@@ -419,19 +433,6 @@ class CreateSC911LE3 extends Job
 
         $combinedSectionInfo = collect(\DB::connection("oracle")->select($query));
         return $combinedSectionInfo;
-    }
-
-    protected function formatInstructorName($name)
-    {
-        $comma_pos = strpos($name, ",");
-
-        // If there is a comma
-        if ($comma_pos !== false) {
-            return substr($name, 0, $comma_pos) . " " . substr($name, $comma_pos + 1, 1);
-        }
-
-        return $name;
-
     }
 
     private function getTableOLAAA()
@@ -487,7 +488,6 @@ class CreateSC911LE3 extends Job
             GROUP BY CLASS_NBR, ACAD_TERM_CD
                     ";
     }
-
 
 
 }

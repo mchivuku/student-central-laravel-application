@@ -8,17 +8,17 @@
 namespace StudentCentralCourseBrowser\Jobs;
 
 
-class GlobalNotes extends Job
+class GetClassNotes extends Job
 {
 
-    protected $destinationTable = 'class_global_notes';
+    protected $destinationTable = 'class_notes';
 
     /**
-     * GetTermDescr constructor.
+     * Get Class Notes constructor.
      */
     public function __construct()
     {
-        parent::__construct('Global- Notes');
+        parent::__construct('Get Class Notes');
     }
 
     /**
@@ -30,17 +30,9 @@ class GlobalNotes extends Job
         $inst_cd = $this->getInstitutionCD();
         $acad_term = implode(", ",$this->getAcadTerms());
 
-        $query = "Select distinct
-                    M.ACAD_GRP_CD,
-                    M.ACAD_TERM_CD,
-                    M.CRS_SUBJ_CD,
-                    M.STU_GLBL_NTS_PRNT_AT_CD,
-                    REPLACE(M.STU_GLBL_NTS_LONG_DESC,CHR(13)||CHR(10),' ') AS
-                    GLBL_NTS_LONG_DESC_NSA
-                    FROM DSS_RDS.SR_GLBL_NTS_GT M
-                    WHERE
-                    M.INST_CD = '$inst_cd'
-                    AND M.ACAD_TERM_CD IN ($acad_term)";
+        $query = "select rownum as r, H.CLS_KEY, H.CLS_NTS_SEQ_NBR,H.CLS_NTS_PRNT_AT_CD,
+                 H.CLS_NTS_NBR, REPLACE(H.CLS_NTS_NBR_LONG_DESC,CHR(13)||CHR(10),' ')
+                 AS NTS_NBR_LONG_DESC  ";
         // truncate
         $this->dbextensionsObj->truncate($this->destinationTable);
 

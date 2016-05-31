@@ -11,7 +11,7 @@ namespace StudentCentralCourseBrowser\Console\Commands;
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-class GlobalNotesNoSubjectArea extends Command
+class GlobalNotes extends Command
 {
 
     /**
@@ -26,7 +26,8 @@ class GlobalNotesNoSubjectArea extends Command
      *
      * @var string
      */
-    protected $description = 'Global notes reads data from SR_GLBL_NTS_GT';
+    protected $description = 'Global notes reads data from SR_GLBL_NTS_GT contains global notes for the class
+                            with subject and with no subject';
 
     /**
      * Create a new command instance.

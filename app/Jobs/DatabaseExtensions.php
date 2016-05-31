@@ -29,12 +29,17 @@ class DatabaseExtensions
      * @param $collection
      * @param $func
      */
-    public function insert($table, $collection, $func)
+    public function insert($table, $collection, $func,$chunksize=null)
     {
 
         $CI = $this;
 
-        $chunks = $collection->chunk($this->chunk_size);
+        if(isset($chunksize)){
+            $chunks = $collection->chunk($chunksize);
+        }else{
+            $chunks = $collection->chunk($this->chunk_size);
+        }
+
 
 
         try{
@@ -44,7 +49,9 @@ class DatabaseExtensions
 
                     /** There is more than one item in the collection */
                     if (count($subset) > 1){
-                        \DB::connection('student_central_db')->table($table)->insert($CI->pack($subset, $func));
+                        \DB::connection('student_central_db')->table($table)
+                            ->insert($CI->pack($subset, $func));
+
                     }
                     else /** One element  in the chunk */
                         \DB::connection($CI->connection_name)
@@ -73,6 +80,7 @@ class DatabaseExtensions
             $results[] = $func($item);
         }
 
+
         return $results;
     }
 
@@ -85,4 +93,15 @@ class DatabaseExtensions
         \DB::connection($this->connection_name)->table($table)->truncate();
     }
 
+
+    /**
+     * Function to read data from dss_prod in chunks
+     * @param $query
+     */
+    function readDataInChunksDSSPROD($query){
+
+
+
+
+    }
 }

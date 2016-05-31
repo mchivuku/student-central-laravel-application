@@ -16,7 +16,8 @@ class Kernel extends ConsoleKernel
         Commands\Inspire::class,
         Commands\GetInstDescr::class,
         Commands\GetTermDescr::class,
-        Commands\CreateSC911LE3::class
+        Commands\CreateSC911LE3::class,
+        Commands\GlobalNotes::class
     ];
 
     /**
