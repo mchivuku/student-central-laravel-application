@@ -61,16 +61,28 @@ class JobLogWriter extends AbstractProcessingHandler
         // if database is not initialized return
         if (is_null($this->pdo)) return;
 
-
         $context = $record['context'];
+        // construct log
+        if(isset($context) && is_array($context)){
+            $log =
+                array_merge(array(
+                    'name' => $record['channel'],
+                    'event' => $record['level_name'],
+                    'message' => $record['message'],
+                ), $context);
+        }else{
+            $log =
+                array(
+                    'name' => $record['channel'],
+                    'event' => $record['level_name'],
+                    'message' => $record['message'],
+                );
+        }
+
+
 
         // construct log
-        $log =
-            array_merge(array(
-                'name' => $record['channel'],
-                'event' => $record['level_name'],
-                'message' => $record['message'],
-            ), $context);
+
 
         $this->statement = $this->pdo->prepare(
             'INSERT INTO `' . $this->table . '` (name, event, message, timestamp)

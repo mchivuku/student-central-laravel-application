@@ -156,6 +156,9 @@ return [
         StudentCentralCourseBrowser\Providers\EventServiceProvider::class,
         StudentCentralCourseBrowser\Providers\RouteServiceProvider::class,
 
+        /** Oracle db provider */
+       // Yajra\Oci8\Oci8ServiceProvider::class,
+
     ],
 
     /*
@@ -204,4 +207,5 @@ return [
 
     ],
 
+    'acadTerms' => [4162,4165,4168]
 ];

@@ -21,7 +21,6 @@ class JobLogUtils
     {
 
         if (isset($ex)) {
-
             $info = ['name' => $job_name,
                 'event' => $event,
                 'message' => $ex->getMessage()];

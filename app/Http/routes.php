@@ -11,12 +11,14 @@
 |
 */
 
-use Log;
 
 ini_set('display_errors',1);
 error_reporting(-1);
 
 Route::get('/', function () {
-    Log::error('Test');
-    return view('welcome');
+
+    $job = new \StudentCentralCourseBrowser\Jobs\CreateSC911LE3();
+    $job->execute();
+
+    //return view('welcome');
 });

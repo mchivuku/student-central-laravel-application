@@ -59,11 +59,20 @@ class ExceptionLogWriter extends AbstractProcessingHandler
         $context = $record['context'];
 
         // construct log
-        $log =
-            array_merge(array(
-                'level' => $this->level,
-                'message' => $record['message'],
-            ), $context);
+        if(isset($context) && is_array($context)){
+            $log =
+                array_merge(array(
+                    'level' => $this->level,
+                    'message' => $record['message'],
+                ), $context);
+        }else{
+            $log =
+                array(
+                    'level' => $this->level,
+                    'message' => $record['message'],
+                );
+        }
+
 
 
         $this->statement = $this->pdo->prepare(
