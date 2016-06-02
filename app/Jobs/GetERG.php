@@ -22,12 +22,14 @@ namespace StudentCentralCourseBrowser\Jobs;
 class GetERG extends Job
 {
 
-    protected $destinationTable = 'class_ERG';
+    protected $destinationTable = 'requirement_group';
 
     const GetERGQuery = "select distinct O.ACAD_RQGRP_CD,
 O.ACAD_RQMT_LN_TYP_CD FROM
-FROM DSS_RDS.SR_RQGRP_GT O
-WHERE O.ACAD_RQMT_LN_TYP_CD = 'COND'";
+  DSS_RDS.SR_RQGRP_GT O
+WHERE O.ACAD_RQMT_LN_TYP_CD = 'COND' AND INST_CD = '@inst_cd'";
+
+
     /**
      * Get Class Notes constructor.
      */
@@ -44,19 +46,22 @@ WHERE O.ACAD_RQMT_LN_TYP_CD = 'COND'";
 
         $inst_cd = $this->getInstitutionCD();
 
-
         // truncate
         $this->dbextensionsObj->truncate($this->destinationTable);
 
-
-        collect($this->getAcadTerms())->each(function ($term) use ($inst_cd) {
-
-
-
+        /** small dataset - get everything and insert in chunks */
+        $data = collect(\DB::connection("oracle")->select(str_replace($this->inst_str,$inst_cd,
+            self::GetERGQuery)));
 
 
 
-        });
+        $this->dbextensionsObj->insert($this->destinationTable, $data,
+            function ($item) {
+                return [
+                    'acad_rqgrp_cd' => $item->acad_rqgrp_cd,
+                    'acad_rqmt_ln_typ_cd' => $item->acad_rqmt_ln_typ_cd
+                ];
+            });
 
 
     }

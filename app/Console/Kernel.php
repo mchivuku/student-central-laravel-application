@@ -20,7 +20,11 @@ class Kernel extends ConsoleKernel
         Commands\GlobalNotes::class,
         Commands\GetClassNotes::class,
         Commands\GetCombinedSectionInfo::class,
-        Commands\CrossListings::class
+        Commands\CrossListings::class,
+        Commands\GetClassAttributes::class,
+        Commands\GetERG::class,
+        Commands\GetERG2::class,
+        Commands\GetClassAssociations::class
     ];
 
     /**
