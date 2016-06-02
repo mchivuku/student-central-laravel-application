@@ -17,7 +17,10 @@ class Kernel extends ConsoleKernel
         Commands\GetInstDescr::class,
         Commands\GetTermDescr::class,
         Commands\CreateSC911LE3::class,
-        Commands\GlobalNotes::class
+        Commands\GlobalNotes::class,
+        Commands\GetClassNotes::class,
+        Commands\GetCombinedSectionInfo::class,
+        Commands\CrossListings::class
     ];
 
     /**

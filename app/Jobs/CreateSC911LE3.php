@@ -17,7 +17,7 @@ class CreateSC911LE3 extends Job
     protected $and, $and2, $and3, $and4, $and5, $and6;
     protected $destinationTable = 'class';
 
-    private $acad_term_str = "@acad_term_str";
+
 
 
     /***
@@ -47,156 +47,84 @@ class CreateSC911LE3 extends Job
          * iterate through each acad term and retrieve 200 records each loop
          * Choose lowest chunk size so that the data can be read - job crashes on low memory
          */
-        $chunksize = 50;
+        $chunksize = 100;
 
         collect($acad_terms_cd)->each(function ($acadTerm) use ($chunksize) {
 
-            $start_at = 0;
-            $number_read = 0;
-            $total = 0;
-            $end_at = $chunksize;
+            $query = str_replace($this->acad_term_str, $acadTerm, $this->selectQuery() . " " .
+                $this->whereClause());
 
-            do {
+            $this->dbextensionsObj->readDataInChunksDSSPROD($query,
 
+                function($data)use($chunksize){
 
-                $query = str_replace($this->acad_term_str, $acadTerm, $this->selectQuery() . " " . $this->whereClause() .
-                    " " . $this->limitClause($end_at) . " " . $this->orderByClause());
-
-                $new_query = "select * from ($query) where rn> " . $start_at;
-
-                $pdo = \DB::connection('oracle')->getPdo();
-                $statement = $pdo->prepare($new_query);
-
-                if ($statement->execute()) {
-
-                    /** @var Fetch all the data - $data */
-                    $data = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                        $insert_rows = "";
+                        foreach ($data as $row) {
 
 
-                    /** @var Collection - pluck the desired column and filter where value is not null or not empty
-                     * $combined_section_ids */
-                    $combined_section_ids = collect($data)->pluck('cls_cmb_sect_id')->filter(function ($item) {
-                        return isset($item) && $item != "";
-                    })->toArray();
+                            $CS_CLS_DRVD_ENRL_CNT = 0;
+                            $CS_CLS_ENRL_CPCTY_NBR = 0;
+
+                            //cls_cnst_typ_req_cd == 'D', I
+                            if ($row['cls_cnst_typ_req_cd'] == 'D' || $row['cls_cnst_typ_req_cd'] == 'I')
+                                $row['cls_cnst_typ_req_cd'] = 'PERM';
+                            else
+                                $row['cls_cnst_typ_req_cd'] = "";
 
 
-                    $class_session_cds = collect($data)->pluck('cls_sesn_cd')->filter(function ($item) {
-                        return isset($item) && $item != "";
-                    })->toArray();
-
-
-                    /** @var  getcombinedsection before inserting data  $row */
-                    // Contains enrollment numbers.
-
-                    // $combined_section_info = $this->getCombSectInfo($acadTerm, $combined_section_ids, $class_session_cds);
-                    $insert_rows = "";
-                    foreach ($data as $row) {
-
-                        $comb_section_id = $row['cls_cmb_sect_id'];
-                        $class_sess_cd = $row['cls_sesn_cd'];
-                        $cls_nbr = $row['cls_nbr'];
-
-
-                        //TODO: check Combined Section - understand the concept
-                        $CS_CLS_DRVD_ENRL_CNT = 0;
-                        $CS_CLS_ENRL_CPCTY_NBR = 0;
-                        /*  $CS_CLS_DRVD_ENRL_CNT = 0;
-                          $CS_CLS_ENRL_CPCTY_NBR = 0;
-
-                          collect($combined_section_info)
-                              ->each(function ($item) use (
-                                  $comb_section_id, $class_sess_cd, $cls_nbr,
-                                  &$CS_CLS_DRVD_ENRL_CNT, &$CS_CLS_ENRL_CPCTY_NBR
-                              ) {
-
-                                  /** Compute enrollment numbers */
-                        //  if ($item->cls_sesn_cd == $class_sess_cd &&
-                        //      $item->cls_cmb_sect_id == $comb_section_id
-                        // ) {
-
-                        //     $CS_CLS_DRVD_ENRL_CNT += $item->cls_drvd_enrl_cnt;
-                        //    $CS_CLS_ENRL_CPCTY_NBR = $item->cls_enrl_cpcty_nbr;
-                        //  }
-                        // });
-
-                        //cls_cnst_typ_req_cd == 'D', I
-                        if ($row['cls_cnst_typ_req_cd'] == 'D' || $row['cls_cnst_typ_req_cd'] == 'I')
-                            $row['cls_cnst_typ_req_cd'] = 'PERM';
-                        else
-                            $row['cls_cnst_typ_req_cd'] = "";
-
-
-                        /** Enrollment Numbers */
-                        if ((($CS_CLS_ENRL_CPCTY_NBR - $CS_CLS_DRVD_ENRL_CNT) <
-                                ($row['cls_enrl_cpcty_nbr'] - $row['cls_drvd_enrl_cnt'])) &&
-                            ($row['cls_cmb_sect_shrt_desc']) != ''
-                        ) {
-                            $row['cls_tot_avl_nbr'] = $CS_CLS_ENRL_CPCTY_NBR - $CS_CLS_DRVD_ENRL_CNT;
-                        } else
+                            /** Enrollment Numbers - TODO - move it to combined section information */
                             $row['cls_tot_avl_nbr'] = $row['cls_enrl_cpcty_nbr'] - $row['cls_drvd_enrl_cnt'];
 
+                            if ($row['cls_tot_avl_nbr'] < 0)
+                                $row['cls_tot_avl_nbr'] = 0;
 
-                        if ($row['cls_tot_avl_nbr'] < 0)
-                            $row['cls_tot_avl_nbr'] = 0;
+                            if ($row['cls_tot_avl_nbr'] == 0 || $row['cls_stat_cd'] != 'A')
+                                $row['cls_clsd_cd'] = 'CLSD';
+                            else
+                                $row['cls_clsd_cd'] = '';
 
-                        if ($row['cls_tot_avl_nbr'] == 0 || $row['cls_stat_cd'] != 'A')
-                            $row['cls_clsd_cd'] = 'CLSD';
-                        else
-                            $row['cls_clsd_cd'] = '';
+                            /* ELMINATES STUTTERING (SOMETIMES BUILDING CODE APPEARS AT START OF ROOM NUMBER)*/
+                            if (substr($row['facil_bldg_rm_nbr'], 1, 2) == $row['facil_bldg_cd']) {
+                                $row['facil_bldg_rm_nbr'] = SUBSTR($row['facil_bldg_rm_nbr'], 3, 8);
+                            }
 
-                        /* ELMINATES STUTTERING (SOMETIMES BUILDING CODE APPEARS AT START OF ROOM NUMBER)*/
-                        if (substr($row['facil_bldg_rm_nbr'], 1, 2) == $row['facil_bldg_cd']) {
-                            $row['facil_bldg_rm_nbr'] = SUBSTR($row['facil_bldg_rm_nbr'], 3, 8);
+                            if ($row['facil_bldg_cd'] == "")
+                                $row['facil_bldg_cd'] = "ARR";
+
+                            if ($row['cls_drvd_mtg_ptrn_cd'] == "")
+                                $row['cls_drvd_mtg_ptrn_cd'] = "ARR";
+
+
+                            //Format Instructor Name
+                            $row['formatted_instructor_name'] = $this->formatInstructorName($row['cls_instr_nm']);
+
+                            /** Attributes */
+                            $row['crs_attrib_clst_cd'] = substr($row['crs_attrib_val_cd'], 7, 3);
+
+                            $insert_rows[] = $row;
+
+
                         }
 
-                        if ($row['facil_bldg_cd'] == "")
-                            $row['facil_bldg_cd'] = "ARR";
 
-                        if ($row['cls_drvd_mtg_ptrn_cd'] == "")
-                            $row['cls_drvd_mtg_ptrn_cd'] = "ARR";
+                        $this->dbextensionsObj->insert($this->destinationTable,
+                            collect($insert_rows),
+                            function ($item) {
+                                // Map - key => value pairs and flat as the map returns an array(array)
+                                return (collect($item)->map(function ($value, $key) {
+                                    if ($key != 'rn')
+                                        return [$key => $value];
+                                    return [];
+                                })->flatMap(function ($item) {
+                                    if ($item != "")
+                                        return $item;
+                                })->toArray());
 
+                            }, $chunksize);
 
-                        //Format Instructor Name
-                        $row['formatted_instructor_name'] = $this->formatInstructorName($row['cls_instr_nm']);
-
-                        /** Attributes */
-                        $row['crs_attrib_clst_cd'] = substr($row['crs_attrib_val_cd'], 7, 3);
-
-                        $insert_rows[] = $row;
-
-
-                    }
-
-
-                    $this->dbextensionsObj->insert($this->destinationTable,
-                        collect($insert_rows),
-                        function ($item) {
-                            // Map - key => value pairs and flat as the map returns an array(array)
-                            return (collect($item)->map(function ($value, $key) {
-                                if ($key != 'rn')
-                                    return [$key => $value];
-                                return [];
-                            })->flatMap(function ($item) {
-                                if ($item != "")
-                                    return $item;
-                            })->toArray());
-
-                        }, $chunksize);
-
-                    /** Compute data pointers */
-                    $number_read = count($data);
-                    $total += $number_read;
-                    $start_at += $number_read;
-                    $end_at += $chunksize;
-                    echo 'Number Read - ' . $number_read . " Total - " . $total;
-                    echo PHP_EOL;
-
-                }
+                    },$chunksize);
 
 
-            } while ($number_read >= $chunksize);
-
-            echo PHP_EOL . 'ACAD TERM ' . $acadTerm;
         });
 
     }
@@ -374,21 +302,6 @@ class CreateSC911LE3 extends Job
 
     }
 
-    /***
-     * Limit 100 results each time
-     * @param $end
-     * @return string
-     */
-    private function limitClause($end)
-    {
-        return " AND rownum <= $end";
-    }
-
-    private function orderByClause()
-    {
-        return " order by rownum";
-    }
-
     protected function formatInstructorName($name)
     {
         $comma_pos = strpos($name, ",");
@@ -402,38 +315,6 @@ class CreateSC911LE3 extends Job
 
     }
 
-    /***
-     * Function contains code in the procedure - GetCombSectInfo
-     * @param $acad_term
-     * @param $cls_cmb_section_id
-     * @param $inst_cd
-     * @param $cls_sesn_cd
-     */
-    private function getCombSectInfo($acad_term, $cls_cmb_section_ids, $cls_session_cds)
-    {
-
-        $query = sprintf(" SELECT distinct Y.ACAD_TERM_CD,
-                   Y.CLS_CMB_SECT_ID,
-                   Y.CLS_NBR,
-                   Y.CLS_ENRL_CPCTY_NBR,  Y.CLS_SESN_CD,
-                   Z.CLS_DRVD_ENRL_CNT
-                    FROM DSS_RDS.SR_CMB_SECT_GT Y,
-                    DSS_RDS.SR_CLS_ENRL_CNT_GT Z
-                    WHERE Y.ACAD_TERM_CD = %s
-                    AND Y.CLS_CMB_SECT_ID IN (%s)
-                    AND Y.INST_CD = '%s'
-                    AND Y.CLS_SESN_CD IN (%s)
-                    AND Y.ACAD_TERM_CD = Z.ACAD_TERM_CD
-                    AND Y.CLS_NBR = Z.CLS_NBR", $acad_term,
-            implode(", ", $cls_cmb_section_ids),
-            $this->getInstitutionCD(),
-            implode(", ", array_map(function ($item) {
-                return "'" . $item . "'";
-            }, $cls_session_cds)));
-
-        $combinedSectionInfo = collect(\DB::connection("oracle")->select($query));
-        return $combinedSectionInfo;
-    }
 
     private function getTableOLAAA()
     {

@@ -28,26 +28,45 @@ class GetClassNotes extends Job
     {
 
         $inst_cd = $this->getInstitutionCD();
-        $acad_term = implode(", ",$this->getAcadTerms());
 
-        $query = "select rownum as r, H.CLS_KEY, H.CLS_NTS_SEQ_NBR,H.CLS_NTS_PRNT_AT_CD,
-                 H.CLS_NTS_NBR, REPLACE(H.CLS_NTS_NBR_LONG_DESC,CHR(13)||CHR(10),' ')
-                 AS NTS_NBR_LONG_DESC  ";
+
         // truncate
         $this->dbextensionsObj->truncate($this->destinationTable);
 
-        $data = collect(\DB::connection("oracle")->select($query));
 
-        $this->dbextensionsObj->insert($this->destinationTable, $data,
-            function ($item) {
-                return [
-                    'acad_grp_cd' => $item->acad_grp_cd,
-                    'acad_term_cd' => $item->acad_term_cd,
-                    'crs_subj_cd'=>$item->crs_subj_cd,
-                    'stu_glbl_nts_prnt_at_cd'=>$item->stu_glbl_nts_prnt_at_cd,
-                    'glbl_nts_long_desc_nsa'=>$item->glbl_nts_long_desc_nsa
-                ];
-            });
+        collect($this->getAcadTerms())->each(function ($term) use ($inst_cd) {
+
+            $chunksize = 400;
+
+            $query = " select rownum as rn, H.CLS_KEY, H.CLS_NTS_SEQ_NBR,
+                  H.CLS_NTS_PRNT_AT_CD,H.CLS_NTS_NBR, REPLACE(H.CLS_NTS_NBR_LONG_DESC,CHR(13)||CHR(10),' ') AS NTS_NBR_LONG_DESC FROM
+                  DSS_RDS.SR_CLS_NTS_GT H,
+                  DSS_RDS.SR_CLS_GT N
+                  WHERE 1=1
+                  and H.CLS_KEY= N.CLS_KEY and N.ACAD_TERM_CD = $term and
+                   N.INST_CD='" . $inst_cd . "' ";
+
+
+            $this->dbextensionsObj->readDataInChunksDSSPRODAndImport($query, function ($data) use ($chunksize) {
+                $this->dbextensionsObj->insert($this->destinationTable, collect($data),
+
+                    function ($item) {
+
+                        return [
+                            'cls_key' => $item['cls_key'],
+                            'cls_nts_seq_nbr' => $item['cls_nts_seq_nbr'],
+                            'cls_nts_prnt_at_cd' => $item['cls_nts_prnt_at_cd'],
+                            'cls_nts_nbr' => $item['cls_nts_nbr'],
+                            'nts_nbr_long_desc' => $item['nts_nbr_long_desc']
+                        ];
+
+                    }, $chunksize);
+
+            }, $chunksize);
+
+
+        });
+
 
     }
 

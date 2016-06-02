@@ -34,6 +34,9 @@ abstract class Job
                           'IUINA'=>'0403','IUKOA'=> '0408','IUNWA'=>'0400',
                           'IUSBA'=>'0399','IUSEA'=>'0406'];
 
+    protected $acad_term_str = "@acad_term_str";
+    protected $inst_str  = "@inst_cd";
+
     /**
      * @var int - choosing a small chunk size as the data set read has lot of columns
      */
