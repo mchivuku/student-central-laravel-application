@@ -24,7 +24,8 @@ class Kernel extends ConsoleKernel
         Commands\GetClassAttributes::class,
         Commands\GetERG::class,
         Commands\GetERG2::class,
-        Commands\GetClassAssociations::class
+        Commands\GetClassAssociations::class,
+        Commands\GetDepartments::class
     ];
 
     /**

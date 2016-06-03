@@ -18,8 +18,6 @@ class CreateSC911LE3 extends Job
     protected $destinationTable = 'class';
 
 
-
-
     /***
      * CreateSC911LE3 constructor.
      */
@@ -56,73 +54,73 @@ class CreateSC911LE3 extends Job
 
             $this->dbextensionsObj->readDataInChunksDSSPROD($query,
 
-                function($data)use($chunksize){
+                function ($data) use ($chunksize) {
 
-                        $insert_rows = "";
-                        foreach ($data as $row) {
-
-
-                            $CS_CLS_DRVD_ENRL_CNT = 0;
-                            $CS_CLS_ENRL_CPCTY_NBR = 0;
-
-                            //cls_cnst_typ_req_cd == 'D', I
-                            if ($row['cls_cnst_typ_req_cd'] == 'D' || $row['cls_cnst_typ_req_cd'] == 'I')
-                                $row['cls_cnst_typ_req_cd'] = 'PERM';
-                            else
-                                $row['cls_cnst_typ_req_cd'] = "";
+                    $insert_rows = "";
+                    foreach ($data as $row) {
 
 
-                            /** Enrollment Numbers - TODO - move it to combined section information */
-                            $row['cls_tot_avl_nbr'] = $row['cls_enrl_cpcty_nbr'] - $row['cls_drvd_enrl_cnt'];
+                        $CS_CLS_DRVD_ENRL_CNT = 0;
+                        $CS_CLS_ENRL_CPCTY_NBR = 0;
 
-                            if ($row['cls_tot_avl_nbr'] < 0)
-                                $row['cls_tot_avl_nbr'] = 0;
-
-                            if ($row['cls_tot_avl_nbr'] == 0 || $row['cls_stat_cd'] != 'A')
-                                $row['cls_clsd_cd'] = 'CLSD';
-                            else
-                                $row['cls_clsd_cd'] = '';
-
-                            /* ELMINATES STUTTERING (SOMETIMES BUILDING CODE APPEARS AT START OF ROOM NUMBER)*/
-                            if (substr($row['facil_bldg_rm_nbr'], 1, 2) == $row['facil_bldg_cd']) {
-                                $row['facil_bldg_rm_nbr'] = SUBSTR($row['facil_bldg_rm_nbr'], 3, 8);
-                            }
-
-                            if ($row['facil_bldg_cd'] == "")
-                                $row['facil_bldg_cd'] = "ARR";
-
-                            if ($row['cls_drvd_mtg_ptrn_cd'] == "")
-                                $row['cls_drvd_mtg_ptrn_cd'] = "ARR";
+                        //cls_cnst_typ_req_cd == 'D', I
+                        if ($row['cls_cnst_typ_req_cd'] == 'D' || $row['cls_cnst_typ_req_cd'] == 'I')
+                            $row['cls_cnst_typ_req_cd'] = 'PERM';
+                        else
+                            $row['cls_cnst_typ_req_cd'] = "";
 
 
-                            //Format Instructor Name
-                            $row['formatted_instructor_name'] = $this->formatInstructorName($row['cls_instr_nm']);
+                        /** Enrollment Numbers - TODO - move it to combined section information */
+                        $row['cls_tot_avl_nbr'] = $row['cls_enrl_cpcty_nbr'] - $row['cls_drvd_enrl_cnt'];
 
-                            /** Attributes */
-                            $row['crs_attrib_clst_cd'] = substr($row['crs_attrib_val_cd'], 7, 3);
+                        if ($row['cls_tot_avl_nbr'] < 0)
+                            $row['cls_tot_avl_nbr'] = 0;
 
-                            $insert_rows[] = $row;
+                        if ($row['cls_tot_avl_nbr'] == 0 || $row['cls_stat_cd'] != 'A')
+                            $row['cls_clsd_cd'] = 'CLSD';
+                        else
+                            $row['cls_clsd_cd'] = '';
 
-
+                        /* ELMINATES STUTTERING (SOMETIMES BUILDING CODE APPEARS AT START OF ROOM NUMBER)*/
+                        if (substr($row['facil_bldg_rm_nbr'], 1, 2) == $row['facil_bldg_cd']) {
+                            $row['facil_bldg_rm_nbr'] = SUBSTR($row['facil_bldg_rm_nbr'], 3, 8);
                         }
 
+                        if ($row['facil_bldg_cd'] == "")
+                            $row['facil_bldg_cd'] = "ARR";
 
-                        $this->dbextensionsObj->insert($this->destinationTable,
-                            collect($insert_rows),
-                            function ($item) {
-                                // Map - key => value pairs and flat as the map returns an array(array)
-                                return (collect($item)->map(function ($value, $key) {
-                                    if ($key != 'rn')
-                                        return [$key => $value];
-                                    return [];
-                                })->flatMap(function ($item) {
-                                    if ($item != "")
-                                        return $item;
-                                })->toArray());
+                        if ($row['cls_drvd_mtg_ptrn_cd'] == "")
+                            $row['cls_drvd_mtg_ptrn_cd'] = "ARR";
 
-                            }, $chunksize);
 
-                    },$chunksize);
+                        //Format Instructor Name
+                        $row['formatted_instructor_name'] = $this->formatInstructorName($row['cls_instr_nm']);
+
+                        /** Attributes */
+                        $row['crs_attrib_clst_cd'] = substr($row['crs_attrib_val_cd'], 7, 3);
+
+                        $insert_rows[] = $row;
+
+
+                    }
+
+
+                    $this->dbextensionsObj->insert($this->destinationTable,
+                        collect($insert_rows),
+                        function ($item) {
+                            // Map - key => value pairs and flat as the map returns an array(array)
+                            return (collect($item)->map(function ($value, $key) {
+                                if ($key != 'rn')
+                                    return [$key => $value];
+                                return [];
+                            })->flatMap(function ($item) {
+                                if ($item != "")
+                                    return $item;
+                            })->toArray());
+
+                        }, $chunksize);
+
+                }, $chunksize);
 
 
         });

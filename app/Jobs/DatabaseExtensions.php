@@ -43,7 +43,7 @@ class DatabaseExtensions
         try {
 
 
-             $chunks->each(
+            $chunks->each(
                 function ($subset) use ($table, &$func, &$CI) {
 
                     /** There is more than one item in the collection */
@@ -118,7 +118,6 @@ class DatabaseExtensions
             $sql = $query .
                 " " . $this->limitClause($end_at) . " " .
                 $this->orderByClause();
-
 
 
             $new_query = "select * from ($sql) where rn> " . $start_at;
