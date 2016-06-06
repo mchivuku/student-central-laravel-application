@@ -17,7 +17,7 @@ error_reporting(-1);
 
 Route::get('/', function () {
 
-    $job = new \StudentCentralCourseBrowser\Jobs\CreateSC911LE3();
+    $job = new \StudentCentralCourseBrowser\Jobs\GenerateXMLFiles();
     $job->execute();
 
     //return view('welcome');

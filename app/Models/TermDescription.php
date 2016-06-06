@@ -11,6 +11,10 @@ namespace StudentCentralCourseBrowser\Models;
 class TermDescription extends BaseModel
 {
 
-    protected $table='term_description';
-     
+    protected $table='term_descr';
+
+    public function scopeAcadTerm($query,$term)
+    {
+        return $query->where('term', '=', $term);
+    }
 }

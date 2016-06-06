@@ -30,9 +30,7 @@ abstract class Job
               $crs_subj_line, $crs_attrib_clst_line,$crs_desc_line, $crs_cmpnt_line;
 
     // Transfer Indiana Initiative Logic
-    protected $ti_inst = ['IUBLA'=>'0409','IUCOA'=>'0405','IUEAA'=>'0409',
-                          'IUINA'=>'0403','IUKOA'=> '0408','IUNWA'=>'0400',
-                          'IUSBA'=>'0399','IUSEA'=>'0406'];
+    protected $ti_inst = '0409';
 
     protected $acad_term_str = "@acad_term_str";
     protected $inst_str  = "@inst_cd";
@@ -78,6 +76,7 @@ abstract class Job
         }catch(\Exception $ex){
 
             var_dump($ex->getMessage());
+            var_dump($ex->getTraceAsString());
             /** Log message - job failed */
              \Log::error('Log message',
                 Utils\JobLogUtils::createLogInfo($this->_jobName,JobEvents::JOB_FAIL,
