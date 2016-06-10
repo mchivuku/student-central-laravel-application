@@ -10,7 +10,7 @@ namespace StudentCentralCourseBrowser\Jobs;
 
 use Symfony\Component\VarDumper\Cloner\Data;
 
-class GetClassAttributes extends Job
+class ImportClassAttributes extends Job
 {
     /**
      * Change if all institutions data is required.
@@ -60,7 +60,7 @@ class GetClassAttributes extends Job
             CRS_ATTRIB_VAL_CD like 'BLLT%')";
 
 
-    protected $destinationTable = 'class_attributes';
+    protected $destinationTable = 'class_attribute';
 
     public function __construct()
     {
@@ -76,7 +76,8 @@ class GetClassAttributes extends Job
         collect($this->getAcadTerms())->each(function($term){
 
             $data = collect(\DB::connection("oracle")
-                ->select(str_replace($this->acad_term_str,$term,self::ClassAttributesQuery)));
+                ->select(str_replace($this->acad_term_str,
+                    $term,self::ClassAttributesQuery)));
 
         //CLS_KEY
         $this->dbextensionsObj->insert($this->destinationTable, $data,

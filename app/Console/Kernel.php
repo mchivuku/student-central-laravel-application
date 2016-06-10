@@ -13,20 +13,23 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        Commands\BackupDB::class,
+
         Commands\Inspire::class,
-        Commands\GetInstDescr::class,
-        Commands\GetTermDescr::class,
+        Commands\ImportInstDescr::class,
+        Commands\ImportTermDescr::class,
         Commands\CreateSC911LE3::class,
         Commands\GlobalNotes::class,
-        Commands\GetClassNotes::class,
-        Commands\GetCombinedSectionInfo::class,
-        Commands\CrossListings::class,
-        Commands\GetClassAttributes::class,
-        Commands\GetERG::class,
-        Commands\GetERG2::class,
-        Commands\GetClassAssociations::class,
-        Commands\GetDepartments::class,
-        Commands\GenerateXMLFiles::class
+        Commands\ImportClassNotes::class,
+        Commands\ImportCombinedSectionInfo::class,
+        Commands\ImportCrossListings::class,
+        Commands\ImportClassAttributes::class,
+        Commands\ImportERG::class,
+        Commands\ImportERG2::class,
+        Commands\ImportClassAssociations::class,
+        Commands\ImportDepartments::class,
+        Commands\ImportClassDescriptions::class,
+        Commands\GenerateJSONFiles::class
     ];
 
     /**

@@ -2,7 +2,7 @@
 /**
  * Created by
  * User: IU Communications
- * Date: 5/25/16
+ * Date: 5/31/16
  */
 
 namespace StudentCentralCourseBrowser\Console\Commands;
@@ -10,21 +10,25 @@ namespace StudentCentralCourseBrowser\Console\Commands;
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-class GetClassAttributes extends Command
+/**
+ * Class GetClassNotes
+ * @package StudentCentralCourseBrowser\Console\Commands
+ */
+class ImportClassNotes extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'job:GetClassAttributes';
+    protected $signature = 'job:ImportClassNotes';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Gets class attributes for the course';
+    protected $description = 'Get class notes from - DSS_RDS.SR_CLS_NTS_GT';
 
     /**
      * Create a new command instance.
@@ -43,7 +47,7 @@ class GetClassAttributes extends Command
      */
     public function handle()
     {
-        $job = new Job\GetClassAttributes() ;
+        $job = new Job\GetClassNotes() ;
         $job->execute();
     }
 }

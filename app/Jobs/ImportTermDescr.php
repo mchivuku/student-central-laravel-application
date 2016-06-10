@@ -7,7 +7,7 @@
 
 namespace StudentCentralCourseBrowser\Jobs;
 
-class GetTermDescr extends Job
+class ImportTermDescr extends Job
 {
     /**
      * Change all terms need to be retrieved. Query retrieves terms after Summer 2015

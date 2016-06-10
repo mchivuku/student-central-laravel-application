@@ -18,7 +18,7 @@ namespace StudentCentralCourseBrowser\Jobs;
  *
  * @package StudentCentralCourseBrowser\Jobs
  */
-class GetERG2 extends Job
+class ImportERG2 extends Job
 {
 
     protected $destinationTable = 'reservation_capacity';

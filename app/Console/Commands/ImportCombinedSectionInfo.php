@@ -2,29 +2,36 @@
 /**
  * Created by
  * User: IU Communications
- * Date: 5/25/16
+ * Date: 6/1/16
  */
+
+
 
 namespace StudentCentralCourseBrowser\Console\Commands;
 
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-class GetERG2 extends Command
+/**
+ * Class GetClassNotes
+ * @package StudentCentralCourseBrowser\Console\Commands
+ */
+class ImportCombinedSectionInfo extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'job:GetERG2';
+    protected $signature = 'job:ImportCombinedSectionInfo';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command imports data from reservation capacity table into reservation capacity table';
+    protected $description = 'Get combined section data to calculate
+                              enrollment numbers - SR_CMB_SECT_GT, SR_CLS_ENRL_CNT_GT';
 
     /**
      * Create a new command instance.
@@ -43,7 +50,8 @@ class GetERG2 extends Command
      */
     public function handle()
     {
-        $job = new Job\GetERG2() ;
+        $job = new Job\ImportCombinedSectionInfo() ;
         $job->execute();
+        echo 'completed running the job';
     }
 }

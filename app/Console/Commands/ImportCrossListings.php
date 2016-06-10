@@ -1,25 +1,30 @@
 <?php
+/**
+ * Created by
+ * User: IU Communications
+ * Date: 5/25/16
+ */
 
 namespace StudentCentralCourseBrowser\Console\Commands;
 
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-class GetInstDescr extends Command
+class ImportCrossListings extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'job:GetInstDescr';
+    protected $signature = 'job:ImportCrossListings';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Import cross listed classes';
 
     /**
      * Create a new command instance.
@@ -38,7 +43,7 @@ class GetInstDescr extends Command
      */
     public function handle()
     {
-        $job = new Job\GetInstDescr() ;
+        $job = new Job\ImportCrossListings();
         $job->execute();
     }
 }

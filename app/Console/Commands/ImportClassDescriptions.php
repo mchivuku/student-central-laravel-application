@@ -10,21 +10,21 @@ namespace StudentCentralCourseBrowser\Console\Commands;
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-class CrossListings extends Command
+class ImportClassDescriptions extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'job:CrossListings';
+    protected $signature = 'job:ImportClassDescriptions';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Import cross listed classes';
+    protected $description = 'Job imports class descriptions for the classes';
 
     /**
      * Create a new command instance.
@@ -43,7 +43,7 @@ class CrossListings extends Command
      */
     public function handle()
     {
-        $job = new Job\GetCrossListings();
+        $job = new Job\ImportClassDescriptions() ;
         $job->execute();
     }
 }

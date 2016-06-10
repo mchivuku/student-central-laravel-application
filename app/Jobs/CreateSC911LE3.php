@@ -7,16 +7,11 @@
 
 namespace StudentCentralCourseBrowser\Jobs;
 
-
-use StudentCentralCourseBrowser\Utils\ArrayHelpers;
-
 class CreateSC911LE3 extends Job
 {
 
-
     protected $and, $and2, $and3, $and4, $and5, $and6;
     protected $destinationTable = 'class';
-
 
     /***
      * CreateSC911LE3 constructor.
@@ -32,66 +27,32 @@ class CreateSC911LE3 extends Job
     protected function run()
     {
 
-        /** TODO - add backup and then truncate */
+        //run backup job - first
 
         $this->dbextensionsObj->truncate('class');
 
-
-        $acad_terms_cd = array_map(function ($item) {
-            return "'" . $item . "'";
-        }, $this->getAcadTerms());
-
         /**
-         * iterate through each acad term and retrieve 200 records each loop
-         * Choose lowest chunk size so that the data can be read - job crashes on low memory
+         * Iterate through each acad term and retrieve 200 records each loop
+         * Choose lowest chunk size so that the data can be read - as the job crashes on the low memory
          */
-        $chunksize = 100;
+        $chunksize = $this->chunk_size;
 
-        collect($acad_terms_cd)->each(function ($acadTerm) use ($chunksize) {
+        collect($this->getAcadTerms())->each(function ($acadTerm) use ($chunksize) {
 
             $query = str_replace($this->acad_term_str, $acadTerm, $this->selectQuery() . " " .
                 $this->whereClause());
 
-            $this->dbextensionsObj->readDataInChunksDSSPROD($query,
+            $this->dbextensionsObj->readDataInChunksDSSPRODAndImport($query,
 
                 function ($data) use ($chunksize) {
 
                     $insert_rows = "";
                     foreach ($data as $row) {
 
-
-                        $CS_CLS_DRVD_ENRL_CNT = 0;
-                        $CS_CLS_ENRL_CPCTY_NBR = 0;
-
-                        //cls_cnst_typ_req_cd == 'D', I
-                        if ($row['cls_cnst_typ_req_cd'] == 'D' || $row['cls_cnst_typ_req_cd'] == 'I')
-                            $row['cls_cnst_typ_req_cd'] = 'PERM';
-                        else
-                            $row['cls_cnst_typ_req_cd'] = "";
-
-
-                        /** Enrollment Numbers - TODO - move it to combined section information */
-                        $row['cls_tot_avl_nbr'] = $row['cls_enrl_cpcty_nbr'] - $row['cls_drvd_enrl_cnt'];
-
-                        if ($row['cls_tot_avl_nbr'] < 0)
-                            $row['cls_tot_avl_nbr'] = 0;
-
-                        if ($row['cls_tot_avl_nbr'] == 0 || $row['cls_stat_cd'] != 'A')
-                            $row['cls_clsd_cd'] = 'CLSD';
-                        else
-                            $row['cls_clsd_cd'] = '';
-
                         /* ELMINATES STUTTERING (SOMETIMES BUILDING CODE APPEARS AT START OF ROOM NUMBER)*/
                         if (substr($row['facil_bldg_rm_nbr'], 1, 2) == $row['facil_bldg_cd']) {
                             $row['facil_bldg_rm_nbr'] = SUBSTR($row['facil_bldg_rm_nbr'], 3, 8);
                         }
-
-                        if ($row['facil_bldg_cd'] == "")
-                            $row['facil_bldg_cd'] = "ARR";
-
-                        if ($row['cls_drvd_mtg_ptrn_cd'] == "")
-                            $row['cls_drvd_mtg_ptrn_cd'] = "ARR";
-
 
                         //Format Instructor Name
                         $row['formatted_instructor_name'] = $this->formatInstructorName($row['cls_instr_nm']);
@@ -100,7 +61,6 @@ class CreateSC911LE3 extends Job
                         $row['crs_attrib_clst_cd'] = substr($row['crs_attrib_val_cd'], 7, 3);
 
                         $insert_rows[] = $row;
-
 
                     }
 
@@ -314,6 +274,9 @@ class CreateSC911LE3 extends Job
     }
 
 
+    /***
+     * TODO: check and remove
+     */
     private function getTableOLAAA()
     {
 

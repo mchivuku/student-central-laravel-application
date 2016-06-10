@@ -2,7 +2,7 @@
 /**
  * Created by
  * User: IU Communications
- * Date: 5/31/16
+ * Date: 5/25/16
  */
 
 namespace StudentCentralCourseBrowser\Console\Commands;
@@ -10,25 +10,21 @@ namespace StudentCentralCourseBrowser\Console\Commands;
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-/**
- * Class GetClassNotes
- * @package StudentCentralCourseBrowser\Console\Commands
- */
-class GetClassNotes extends Command
+class ImportDepartments extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'job:GetClassNotes';
+    protected $signature = 'job:ImportDepartments';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Get class notes from - DSS_RDS.SR_CLS_NTS_GT';
+    protected $description = 'Import all departments and their acad groups for the acad term';
 
     /**
      * Create a new command instance.
@@ -47,7 +43,7 @@ class GetClassNotes extends Command
      */
     public function handle()
     {
-        $job = new Job\GetClassNotes() ;
+        $job = new Job\ImportDepartments();
         $job->execute();
     }
 }

@@ -157,7 +157,7 @@ return [
         StudentCentralCourseBrowser\Providers\RouteServiceProvider::class,
 
         /** Oracle db provider */
-       // Yajra\Oci8\Oci8ServiceProvider::class,
+         Yajra\Oci8\Oci8ServiceProvider::class,
 
     ],
 

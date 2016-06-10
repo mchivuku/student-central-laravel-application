@@ -29,12 +29,12 @@ class ClassTable extends BaseModel
         if(substr($term,5,1)==5){
 
             return $query->orderBy('acad_grp_cd','crs_subj_dept_cd')
-                    ->orderBy('substr(crs_attrib_cd, 1, 2)','desc')
+                    ->orderBy('substr(crs_attrib_cd, 1, 2)')
                     ->orderBy('substr(crs_attrib_cd,1,9)')
                     ->orderBy('crs_catlg_nbr')
                     ->orderBy('crs_subj_ltr_cd')
                     ->orderBy('cls_assct_nbr')
-                    ->orderBy('cls_drvd_grd_cmpnt','desc')
+                    ->orderBy('cls_drvd_grd_cmpnt')
                     ->orderBy('crs_cmpnt_cd')
                     ->orderBy('cls_mtg_strt_tm')
                     ->orderBy('cls_nbr')
@@ -59,20 +59,20 @@ class ClassTable extends BaseModel
             // B.CLS_MTG_PTRN_NBR,
             // C.CLS_INSTR_ASGN_SEQ_NBR'
 
-            return $query->orderBy('acad_grp_cd','crs_subj_dept_cd')
+            return $query
+                ->orderBy('acad_grp_cd','crs_subj_dept_cd')
                 ->orderByRaw('substr(crs_attrib_val_cd, 1, 2) desc')
                 ->orderBy('crs_attrib_val_cd')
                 ->orderBy('crs_catlg_nbr')
                 ->orderBy('crs_subj_ltr_cd')
-                ->orderBy('cls_assct_nbr')
                 ->orderBy('cls_drvd_grd_cmpnt_ind','desc')
                 ->orderBy('crs_cmpnt_cd')
-                ->orderBy('cls_drvd_sort_cd')
                 ->orderBy('cls_mtg_strt_tm')
                 ->orderBy('cls_nbr')
                 ->orderBy('cls_drvd_sort_cd')
                 ->orderBy('cls_mtg_ptrn_nbr')
-                ->orderBy('cls_instr_asgn_seq_nbr');
+                ->orderBy('cls_instr_asgn_seq_nbr')
+                ->orderBy('cls_assct_nbr','desc');
 
         }
 

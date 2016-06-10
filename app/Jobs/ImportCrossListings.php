@@ -14,10 +14,10 @@ namespace StudentCentralCourseBrowser\Jobs;
  * Get information of the combined section
  * @package StudentCentralCourseBrowser\Jobs
  */
-class GetCrossListings extends Job
+class  ImportCrossListings extends Job
 {
 
-    protected $destinationTable = 'class_crosslisted';
+    protected $destinationTable = 'crosslisted_course';
 
     const CrossListedCoursesQuery = "
 
@@ -80,6 +80,7 @@ K.CRS_CATLG_NBR, K.CRS_SUBJ_LTR_CD
     protected function run()
     {
         // truncate  - table
+
         $this->dbextensionsObj->truncate($this->destinationTable);
         collect($this->getAcadTerms())->each(function($term){
 

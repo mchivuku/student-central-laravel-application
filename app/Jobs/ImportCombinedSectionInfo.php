@@ -13,7 +13,7 @@ namespace StudentCentralCourseBrowser\Jobs;
  * Get information of the combined section
  * @package StudentCentralCourseBrowser\Jobs
  */
-class GetCombinedSectionInfo extends Job
+class ImportCombinedSectionInfo extends Job
 {
 
     protected $destinationTable = 'class_combined_section';
@@ -25,13 +25,11 @@ class GetCombinedSectionInfo extends Job
                    Z.CLS_DRVD_ENRL_CNT
                     FROM DSS_RDS.SR_CMB_SECT_GT Y,
                     DSS_RDS.SR_CLS_ENRL_CNT_GT Z
-                    WHERE Y.ACAD_TERM_CD = @acad_term
+                    WHERE Y.ACAD_TERM_CD = @acad_term_str
                     AND Y.INST_CD = '@inst_cd'
                     AND Y.ACAD_TERM_CD = Z.ACAD_TERM_CD
                     AND Y.CLS_NBR = Z.CLS_NBR";
 
-    private $acad_term_str = "@acad_term";
-    private $inst_term_str = "@inst_cd";
 
 
 
@@ -46,7 +44,7 @@ class GetCombinedSectionInfo extends Job
         $this->dbextensionsObj->truncate($this->destinationTable);
         collect($this->getAcadTerms())->each(function($term){
             $data = collect(\DB::connection("oracle")
-                ->select(str_replace($this->inst_term_str,$this->getInstitutionCD(),
+                ->select(str_replace($this->inst_str,$this->getInstitutionCD(),
                         str_replace($this->acad_term_str,$term,
                         self::CombinedSectionQuery))))
             ;

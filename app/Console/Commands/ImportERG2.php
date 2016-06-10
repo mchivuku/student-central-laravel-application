@@ -10,21 +10,21 @@ namespace StudentCentralCourseBrowser\Console\Commands;
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-class GenerateXMLFiles extends Command
+class ImportERG2 extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'job:GenerateXMLFiles';
+    protected $signature = 'job:ImportERG2';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Generate xml files to cache';
+    protected $description = 'Command imports data from reservation capacity table into reservation capacity table';
 
     /**
      * Create a new command instance.
@@ -43,7 +43,7 @@ class GenerateXMLFiles extends Command
      */
     public function handle()
     {
-        $job = new Job\GenerateXMLFiles();
+        $job = new Job\ImportERG2() ;
         $job->execute();
     }
 }

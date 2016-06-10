@@ -10,7 +10,7 @@ namespace StudentCentralCourseBrowser\Jobs;
 
 use Symfony\Component\VarDumper\Cloner\Data;
 
-class GetDepartments extends Job
+class ImportDepartments extends Job
 {
 
     const DepartmentsQuery = "

@@ -19,7 +19,7 @@ namespace StudentCentralCourseBrowser\Jobs;
  *
  * @package StudentCentralCourseBrowser\Jobs
  */
-class GetERG extends Job
+class ImportERG extends Job
 {
 
     protected $destinationTable = 'requirement_group';
@@ -52,7 +52,6 @@ WHERE O.ACAD_RQMT_LN_TYP_CD = 'COND' AND INST_CD = '@inst_cd'";
         /** small dataset - get everything and insert in chunks */
         $data = collect(\DB::connection("oracle")->select(str_replace($this->inst_str,$inst_cd,
             self::GetERGQuery)));
-
 
 
         $this->dbextensionsObj->insert($this->destinationTable, $data,

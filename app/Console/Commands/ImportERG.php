@@ -10,14 +10,14 @@ namespace StudentCentralCourseBrowser\Console\Commands;
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-class GetERG extends Command
+class ImportERG extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'job:GetERG';
+    protected $signature = 'job:ImportERG';
 
     /**
      * The console command description.
@@ -43,7 +43,7 @@ class GetERG extends Command
      */
     public function handle()
     {
-        $job = new Job\GetERG() ;
+        $job = new Job\ImportERG() ;
         $job->execute();
     }
 }

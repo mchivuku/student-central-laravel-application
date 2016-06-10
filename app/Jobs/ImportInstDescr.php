@@ -10,7 +10,7 @@ namespace StudentCentralCourseBrowser\Jobs;
 
 use Symfony\Component\VarDumper\Cloner\Data;
 
-class GetInstDescr extends Job
+class ImportInstDescr extends Job
 {
     /**
      * Change if all institutions data is required.

@@ -2,36 +2,29 @@
 /**
  * Created by
  * User: IU Communications
- * Date: 6/1/16
+ * Date: 5/25/16
  */
-
-
 
 namespace StudentCentralCourseBrowser\Console\Commands;
 
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-/**
- * Class GetClassNotes
- * @package StudentCentralCourseBrowser\Console\Commands
- */
-class GetCombinedSectionInfo extends Command
+class ImportClassAttributes extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'job:GetCombinedSectionInfo';
+    protected $signature = 'job:ImportClassAttributes';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Get combined section data to calculate
-                              enrollment numbers - SR_CMB_SECT_GT, SR_CLS_ENRL_CNT_GT';
+    protected $description = 'Gets class attributes for the course';
 
     /**
      * Create a new command instance.
@@ -50,8 +43,7 @@ class GetCombinedSectionInfo extends Command
      */
     public function handle()
     {
-        $job = new Job\GetCombinedSectionInfo() ;
+        $job = new Job\ImportClassAttributes() ;
         $job->execute();
-        echo 'completed running the job';
     }
 }

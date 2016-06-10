@@ -8,7 +8,7 @@
 namespace StudentCentralCourseBrowser\Jobs;
 
 
-class GetClassNotes extends Job
+class ImportClassNotes extends Job
 {
 
     protected $destinationTable = 'class_notes';
@@ -39,7 +39,11 @@ class GetClassNotes extends Job
             $chunksize = 400;
 
             $query = " select rownum as rn, H.CLS_KEY, H.CLS_NTS_SEQ_NBR,
-                  H.CLS_NTS_PRNT_AT_CD,H.CLS_NTS_NBR, REPLACE(H.CLS_NTS_NBR_LONG_DESC,CHR(13)||CHR(10),' ') AS NTS_NBR_LONG_DESC FROM
+                  H.CLS_NTS_PRNT_AT_CD,H.CLS_NTS_NBR,
+                  REPLACE(H.CLS_NTS_NBR_LONG_DESC,CHR(13)||CHR(10),' ')
+                  AS NTS_NBR_LONG_DESC,
+                  REPLACE(H.CLS_NTS_LONG_DESC,CHR(13)||CHR(10),' ') AS NTS_LONG_DESC
+                  FROM
                   DSS_RDS.SR_CLS_NTS_GT H,
                   DSS_RDS.SR_CLS_GT N
                   WHERE 1=1
@@ -57,7 +61,8 @@ class GetClassNotes extends Job
                             'cls_nts_seq_nbr' => $item['cls_nts_seq_nbr'],
                             'cls_nts_prnt_at_cd' => $item['cls_nts_prnt_at_cd'],
                             'cls_nts_nbr' => $item['cls_nts_nbr'],
-                            'nts_nbr_long_desc' => $item['nts_nbr_long_desc']
+                            'nts_nbr_long_desc' => $item['nts_nbr_long_desc'],
+                            'nts_long_desc' =>$item['nts_long_desc']
                         ];
 
                     }, $chunksize);

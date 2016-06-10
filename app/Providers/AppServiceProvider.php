@@ -31,5 +31,23 @@ class AppServiceProvider extends ServiceProvider
             'DatabaseExtensions',
             'StudentCentralCourseBrowser\Jobs\DatabaseExtensions'
         );
+
+        /** App Bind Transformers - for dependency injection */
+        $this->app->bind(
+            'CourseTransformer',
+            'StudentCentralCourseBrowser\Transformers\CourseTransformer'
+        );
+
+        $this->app->bind(
+            'ClassTransformer',
+            'StudentCentralCourseBrowser\Transformers\ClassTransformer'
+        );
+
+        $this->app->bind(
+            'ClassDetailsTransformer',
+            'StudentCentralCourseBrowser\Transformers\ClassDetailsTransformer'
+        );
+
+
     }
 }

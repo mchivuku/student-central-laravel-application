@@ -1,25 +1,30 @@
 <?php
+/**
+ * Created by
+ * User: IU Communications
+ * Date: 5/25/16
+ */
 
 namespace StudentCentralCourseBrowser\Console\Commands;
 
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-class GetTermDescr extends Command
+class ImportClassAssociations extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'job:GetTermDescr';
+    protected $signature = 'job:ImportClassAssociations';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Run job for ready term description';
+    protected $description = 'Command imports data from class associations table';
 
     /**
      * Create a new command instance.
@@ -38,8 +43,7 @@ class GetTermDescr extends Command
      */
     public function handle()
     {
-        /** @var GetTermDescr $job */
-        $job = new Job\GetTermDescr();
+        $job = new Job\ImportClassAssociations() ;
         $job->execute();
     }
 }

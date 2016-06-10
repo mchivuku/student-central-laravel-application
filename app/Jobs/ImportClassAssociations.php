@@ -10,7 +10,7 @@ namespace StudentCentralCourseBrowser\Jobs;
 
 use Symfony\Component\VarDumper\Cloner\Data;
 
-class GetClassAssociations extends Job
+class ImportClassAssociations extends Job
 {
     /**
      * Get all class associations from the term
@@ -36,7 +36,7 @@ class GetClassAssociations extends Job
         AND Q.CLS_SESN_CD = R.CLS_SESN_CD
         AND Q.CLS_ASSCT_NBR = R.CLS_ASSCT_NBR AND R.INST_CD = '@inst_cd'";
 
-    protected $destinationTable = 'class_associations';
+    protected $destinationTable = 'class_association';
 
     public function __construct()
     {

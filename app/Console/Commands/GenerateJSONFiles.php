@@ -10,21 +10,21 @@ namespace StudentCentralCourseBrowser\Console\Commands;
 use Illuminate\Console\Command;
 use StudentCentralCourseBrowser\Jobs as Job;
 
-class GetDepartments extends Command
+class GenerateJSONFiles extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'job:GetDepartments';
+    protected $signature = 'job:GenerateJSONFiles';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Import all departments and their acad groups for the acad term';
+    protected $description = 'Generate json files to cache';
 
     /**
      * Create a new command instance.
@@ -43,7 +43,7 @@ class GetDepartments extends Command
      */
     public function handle()
     {
-        $job = new Job\GetDepartments();
+        $job = new Job\GenerateJSONFiles();
         $job->execute();
     }
 }
