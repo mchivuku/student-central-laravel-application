@@ -47,7 +47,7 @@ class ImportClassNotes extends Command
      */
     public function handle()
     {
-        $job = new Job\GetClassNotes() ;
+        $job = new Job\ImportClassNotes() ;
         $job->execute();
     }
 }

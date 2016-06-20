@@ -52,4 +52,16 @@ $app->singleton(
 |
 */
 
+
+$app->configureMonologUsing(function($monolog) {
+
+    $log = new \StudentCentralCourseBrowser\Bootstrap\CustomLogHandler();
+    $pdo = $log->getConnectionObject();
+
+    // Log to job_log or exceptions table table.
+    $monolog->pushHandler(new \StudentCentralCourseBrowser\Bootstrap\AbstractBaseWriter(Monolog\Logger::INFO,
+        false,$pdo));
+
+});
+
 return $app;

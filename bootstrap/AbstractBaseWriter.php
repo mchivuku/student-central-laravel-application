@@ -11,6 +11,11 @@ namespace StudentCentralCourseBrowser\Bootstrap;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger as Monolog;
 
+/**
+ * Class AbstractBaseWriter - custom log handler to log job status into the job_log table
+ * Log exceptions into exception_log table.
+ * @package StudentCentralCourseBrowser\Bootstrap
+ */
 class AbstractBaseWriter extends AbstractProcessingHandler
 {
 
@@ -46,6 +51,7 @@ class AbstractBaseWriter extends AbstractProcessingHandler
 
         if(isset($context['log_type']))
         {
+
             $writer =  new JobLogWriter($this->pdo,$this->level);
         }else{
             $writer =  new ExceptionLogWriter($this->pdo,$this->level);

@@ -58,10 +58,14 @@ class JobLogWriter extends AbstractProcessingHandler
     protected function write(array $record)
     {
 
+
+
         // if database is not initialized return
         if (is_null($this->pdo)) return;
 
         $context = $record['context'];
+
+
         // construct log
         if(isset($context) && is_array($context)){
             $log =
@@ -79,19 +83,15 @@ class JobLogWriter extends AbstractProcessingHandler
                 );
         }
 
-
-
         // construct log
-
-
         $this->statement = $this->pdo->prepare(
-            'INSERT INTO `' . $this->table . '` (name, event, message, timestamp)
-               VALUES (:name,  :event, :message, :timestamp)'
+            'INSERT INTO `' . $this->table . '` (name, event, message)
+               VALUES (:name,  :event, :message)'
         );
 
-        $this->statement->execute(['name' => $log['name'],
-            'event' => $log['event'],
-            'message' => $log['message']]);
+        $this->statement->execute([':name' => $log['name'],
+            ':event' => $log['event'],
+            ':message' => $log['message']]);
 
     }
 

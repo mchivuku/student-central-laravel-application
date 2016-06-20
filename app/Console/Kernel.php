@@ -4,6 +4,7 @@ namespace StudentCentralCourseBrowser\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Artisan;
 
 class Kernel extends ConsoleKernel
 {
@@ -40,7 +41,42 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        $schedule->command('job:BackupDB')
+            ->before(function () {
+                // Import Class;
+                Artisan::call('job:CreateSC911LE3');
+
+                //Import Class Associations
+                Artisan::call('job:ImportClassAssociations');
+
+                //Import Class Attributes
+                Artisan::call('job:ImportClassAttributes');
+
+                //Import Class Descriptions
+                Artisan::call('job:ImportClassDescriptions');
+
+                //Import Class Notes
+                Artisan::call('job:ImportClassNotes');
+
+                //Import Combined Section Information
+                Artisan::call('job:ImportClassAssociations');
+
+                //Import Cross Listings
+                Artisan::call('job:ImportCrossListings');
+
+
+                //Import Departments
+                Artisan::call('job:ImportDepartments');
+
+
+                //Import ERG
+                Artisan::call('job:ImportERG');
+
+                //Import ERG2
+                Artisan::call('job:ImportERG2');
+
+            })
+            ->dailyAt('15:42');
+
     }
 }

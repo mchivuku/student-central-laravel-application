@@ -23,12 +23,11 @@ class JobLogUtils
         if (isset($ex)) {
             $info = ['name' => $job_name,
                 'event' => $event,
-                'message' => $ex->getMessage()];
+                'message' => $ex->getMessage(),'log_type'=>'job'];
             return $info;
         }
 
-
-        $info = ['name' => $job_name, 'event' => $event, 'message' => $message];
+        $info = ['name' => $job_name, 'event' => $event, 'message' => $message,'log_type'=>'job'];
 
         return $info;
 

@@ -8,7 +8,7 @@
 namespace StudentCentralCourseBrowser\Models;
 
 
-class ClassNotes extends BaseModel
+class CrossListedCourse extends BaseModel
 {
 
     protected $table='crosslisted_course';

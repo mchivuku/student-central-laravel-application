@@ -61,10 +61,7 @@ class Kernel extends HttpKernel
         'Illuminate\Foundation\Bootstrap\HandleExceptions',
         'Illuminate\Foundation\Bootstrap\RegisterFacades',
         'Illuminate\Foundation\Bootstrap\RegisterProviders',
-        'Illuminate\Foundation\Bootstrap\BootProviders',
-
-        /** Custom log handler */
-        'StudentCentralCourseBrowser\Bootstrap\CustomLogHandler'
+        'Illuminate\Foundation\Bootstrap\BootProviders'
     ];
 
 }

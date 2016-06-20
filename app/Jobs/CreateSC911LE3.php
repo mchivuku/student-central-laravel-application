@@ -152,7 +152,10 @@ class CreateSC911LE3 extends Job
         F.CLS_DRVD_GRD_CMPNT_IND,
         G.CLS_MTG_STRT_DT,
         X.CLS_CMB_SECT_SHRT_DESC,
-        X.CLS_CMB_SECT_ID
+        X.CLS_CMB_SECT_ID,
+          to_number(to_char(B.CLS_MTG_STRT_TM,'hh24'))*60*60+
+            to_number(to_char(B.CLS_MTG_STRT_TM,'MI'))*60+
+           to_number(to_char(B.CLS_MTG_STRT_TM,'SS'))  as cls_mtg_strt_tm_sec
       FROM
         DSS_RDS.SR_CLS_GT A,
         DSS_RDS.SR_CLS_MTG_GT B,
@@ -233,6 +236,7 @@ class CreateSC911LE3 extends Job
                         AND X.ACAD_TERM_CD (+) = A.ACAD_TERM_CD
                         AND X.CLS_NBR (+) = A.CLS_NBR
                         AND A.CLS_KEY = AAA.CLS_KEY
+                        AND A.CLS_STAT_CD='A' and A.CLS_SC_PRNT_IND='Y'
                       ";
 
         /**

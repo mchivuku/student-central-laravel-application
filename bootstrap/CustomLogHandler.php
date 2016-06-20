@@ -19,51 +19,17 @@ use Monolog\Handler\StreamHandler;
  * Custom handler for logging
  * @package StudentCentralCourseBrowser\Bootstrap
  */
-class CustomLogHandler extends \Illuminate\Foundation\Bootstrap\ConfigureLogging
+class CustomLogHandler
 {
 
     private $dbconfig_file = '.dbconfig';
     private $dbKey =  'student_central_db';
 
-    /**
-     * @param Application $app
-     * @param Writer $log
-     */
-    protected function configureHandlers(Application $app, Writer $log)
-    {
-
-
-        $bubble = false;
-
-
-        // stream handler
-        // 1. Job log - call JobLogWriter
-        // 2. Exception Log - call ExceptionLogWriter
-
-        $infoStreamHandler = new StreamHandler( storage_path("/logs/laravel_info.log"),
-            Monolog::INFO, $bubble);
-
-        $warningStreamHandler = new StreamHandler( storage_path("/logs/laravel_warning.log"),
-            Monolog::WARNING, $bubble);
-
-
-        $jobExceptionHandler = new AbstractBaseWriter(Monolog::ERROR, $bubble,$this->getConnectionObject());
-
-        // Get monolog instance and push handlers
-        $monolog = $log->getMonolog();
-        $monolog->pushHandler($infoStreamHandler);
-        $monolog->pushHandler($warningStreamHandler);
-
-        $monolog->pushHandler($jobExceptionHandler);
-
-        // Daily Files - keep doing the same
-        $log->useDailyFiles($app->storagePath().'/logs/daily.log');
-    }
 
     /**
      * @return \PDO - if the connection was successful
      */
-    private function getConnectionObject(){
+    public  function getConnectionObject(){
 
         try{
 
@@ -91,7 +57,6 @@ class CustomLogHandler extends \Illuminate\Foundation\Bootstrap\ConfigureLogging
         }catch(\PDOException $ex){
             die($ex->getMessage());
         }
-
 
     }
 }

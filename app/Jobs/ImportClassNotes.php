@@ -18,7 +18,7 @@ class ImportClassNotes extends Job
      */
     public function __construct()
     {
-        parent::__construct('Get Class Notes');
+        parent::__construct('Import Class Notes');
     }
 
     /**
