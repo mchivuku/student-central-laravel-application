@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'env' => env('APP_ENV', 'production'),
+    'env' => 'local',
 
     /*
     |--------------------------------------------------------------------------
@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'http://stucent.webtest.iu.edu/_php/laravel-app'),
 
     /*
     |--------------------------------------------------------------------------
@@ -151,10 +151,10 @@ return [
         /*
          * Application Service Providers...
          */
-        StudentCentralCourseBrowser\Providers\AppServiceProvider::class,
-        StudentCentralCourseBrowser\Providers\AuthServiceProvider::class,
-        StudentCentralCourseBrowser\Providers\EventServiceProvider::class,
-        StudentCentralCourseBrowser\Providers\RouteServiceProvider::class,
+        StudentCentralApp\Providers\AppServiceProvider::class,
+        StudentCentralApp\Providers\AuthServiceProvider::class,
+        StudentCentralApp\Providers\EventServiceProvider::class,
+        StudentCentralApp\Providers\RouteServiceProvider::class,
 
         /** Oracle db provider */
          Yajra\Oci8\Oci8ServiceProvider::class,

@@ -5,7 +5,7 @@
  * Date: 5/27/16
  */
 
-namespace StudentCentralCourseBrowser\Utils;
+namespace StudentCentralApp\Utils;
 
 
 class ArrayHelpers{

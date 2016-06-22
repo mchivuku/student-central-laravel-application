@@ -28,17 +28,17 @@ $app = new Illuminate\Foundation\Application(
 
 $app->singleton(
     Illuminate\Contracts\Http\Kernel::class,
-    StudentCentralCourseBrowser\Http\Kernel::class
+    StudentCentralApp\Http\Kernel::class
 );
 
 $app->singleton(
     Illuminate\Contracts\Console\Kernel::class,
-    StudentCentralCourseBrowser\Console\Kernel::class
+    StudentCentralApp\Console\Kernel::class
 );
 
 $app->singleton(
     Illuminate\Contracts\Debug\ExceptionHandler::class,
-    StudentCentralCourseBrowser\Exceptions\Handler::class
+    StudentCentralApp\Exceptions\Handler::class
 );
 
 /*
@@ -55,11 +55,11 @@ $app->singleton(
 
 $app->configureMonologUsing(function($monolog) {
 
-    $log = new \StudentCentralCourseBrowser\Bootstrap\CustomLogHandler();
+    $log = new \StudentCentralApp\Bootstrap\CustomLogHandler();
     $pdo = $log->getConnectionObject();
 
     // Log to job_log or exceptions table table.
-    $monolog->pushHandler(new \StudentCentralCourseBrowser\Bootstrap\AbstractBaseWriter(Monolog\Logger::INFO,
+    $monolog->pushHandler(new \StudentCentralApp\Bootstrap\AbstractBaseWriter(Monolog\Logger::INFO,
         false,$pdo));
 
 });

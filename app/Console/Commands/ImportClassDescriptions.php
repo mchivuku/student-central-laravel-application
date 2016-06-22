@@ -5,10 +5,10 @@
  * Date: 5/25/16
  */
 
-namespace StudentCentralCourseBrowser\Console\Commands;
+namespace StudentCentralApp\Console\Commands;
 
 use Illuminate\Console\Command;
-use StudentCentralCourseBrowser\Jobs as Job;
+use StudentCentralApp\Jobs as Job;
 
 class ImportClassDescriptions extends Command
 {

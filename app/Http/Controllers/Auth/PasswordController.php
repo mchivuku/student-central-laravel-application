@@ -1,8 +1,8 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Http\Controllers\Auth;
+namespace StudentCentralApp\Http\Controllers\Auth;
 
-use StudentCentralCourseBrowser\Http\Controllers\Controller;
+use StudentCentralApp\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ResetsPasswords;
 
 class PasswordController extends Controller

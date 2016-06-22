@@ -1,6 +1,6 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Http\Middleware;
+namespace StudentCentralApp\Http\Middleware;
 
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as BaseVerifier;
 

@@ -6,7 +6,7 @@
  * Date: 5/16/16
  */
 
-namespace StudentCentralCourseBrowser\Bootstrap;
+namespace StudentCentralApp\Bootstrap;
 
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger as Monolog;
@@ -14,7 +14,7 @@ use Monolog\Logger as Monolog;
 /**
  * Class AbstractBaseWriter - custom log handler to log job status into the job_log table
  * Log exceptions into exception_log table.
- * @package StudentCentralCourseBrowser\Bootstrap
+ * @package StudentCentralApp\Bootstrap
  */
 class AbstractBaseWriter extends AbstractProcessingHandler
 {

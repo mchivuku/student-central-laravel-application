@@ -1,6 +1,6 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Console\Commands;
+namespace StudentCentralApp\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Inspiring;

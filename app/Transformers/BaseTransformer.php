@@ -4,7 +4,7 @@
  * User: IU Communications
  * Date: 6/9/16
  */
-namespace StudentCentralCourseBrowser\Transformers;
+namespace StudentCentralApp\Transformers;
 
 /**
  * Base class to hold common functions

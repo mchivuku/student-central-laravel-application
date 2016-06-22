@@ -5,7 +5,7 @@
  * Date: 5/17/16
  */
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 
 use Symfony\Component\VarDumper\Cloner\Data;
@@ -29,8 +29,8 @@ class ImportInstDescr extends Job
         // truncate
         $this->dbextensionsObj->truncate($this->destinationTable);
 
-        $data = collect(\DB::connection("oracle")
-            ->select(self::GetInstDescrQuery));
+        $data = collect(\DB::connection("oracle")->select(self::GetInstDescrQuery));
+
 
         $this->dbextensionsObj->insert($this->destinationTable, $data,
             function ($item) {

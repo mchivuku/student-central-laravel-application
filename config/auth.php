@@ -67,7 +67,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => StudentCentralCourseBrowser\User::class,
+            'model' => StudentCentralApp\User::class,
         ],
 
         // 'users' => [

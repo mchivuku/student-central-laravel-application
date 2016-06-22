@@ -6,7 +6,7 @@
  */
 
 
-namespace StudentCentralCourseBrowser\Transformers;
+namespace StudentCentralApp\Transformers;
 use League\Fractal\TransformerAbstract;
 
 class ClassDetailsTransformer extends TransformerAbstract

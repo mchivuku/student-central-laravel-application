@@ -6,21 +6,21 @@
  */
 
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 use Illuminate\Database\Eloquent\Collection;
-use StudentCentralCourseBrowser\Utils as Utils;
+use StudentCentralApp\Utils as Utils;
 
 /**
  * Class DatabaseExtensions
  * helper class to manage database functions
- * @package StudentCentralCourseBrowser\Jobs
+ * @package StudentCentralApp\Jobs
  */
 class DatabaseExtensions
 {
 
     protected $chunk_size = 100;
-    protected $connection_name = 'student_central_db';
+    protected $connection_name = 'coursebrowser';
 
     /**
      * Insert data into destination table in chunks
@@ -48,7 +48,7 @@ class DatabaseExtensions
 
                     /** There is more than one item in the collection */
                     if (count($subset) > 1) {
-                        \DB::connection('student_central_db')->table($table)
+                        \DB::connection('coursebrowser')->table($table)
                             ->insert($CI->pack($subset, $func));
 
                     } else /** One element  in the chunk */

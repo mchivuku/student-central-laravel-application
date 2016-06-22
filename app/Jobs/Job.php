@@ -1,9 +1,9 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 use Illuminate\Bus\Queueable;
-use StudentCentralCourseBrowser\Utils as Utils;
+use StudentCentralApp\Utils as Utils;
 
 abstract class Job
 {

@@ -5,7 +5,7 @@
  * Date: 6/2/16
  */
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 // Faculty and department description
 

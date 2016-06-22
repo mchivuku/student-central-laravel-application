@@ -1,6 +1,6 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Models;
+namespace StudentCentralApp\Models;
 
 /**
  * Created by

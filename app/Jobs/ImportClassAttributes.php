@@ -5,7 +5,7 @@
  * Date: 6/1/16
  */
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 
 use Symfony\Component\VarDumper\Cloner\Data;

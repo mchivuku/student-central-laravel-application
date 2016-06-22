@@ -1,6 +1,6 @@
 <?php
 
-$connections = \StudentCentralCourseBrowser\Utils\DBConfigHandler::connections();
+$connections = \StudentCentralApp\Utils\DBConfigHandler::connections();
 return [
 
     /*
@@ -27,7 +27,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'student_central_db'),
+    'default' => env('DB_CONNECTION', 'coursebrowser'),
 
     /*
     |--------------------------------------------------------------------------
@@ -76,7 +76,7 @@ return [
         'cluster' => false,
 
         'default' => [
-            'host' => env('REDIS_HOST', 'localhost'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
             'password' => env('REDIS_PASSWORD', null),
             'port' => env('REDIS_PORT', 6379),
             'database' => 0,

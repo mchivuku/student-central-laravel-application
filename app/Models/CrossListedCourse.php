@@ -5,7 +5,7 @@
  * Date: 6/3/16
  */
 
-namespace StudentCentralCourseBrowser\Models;
+namespace StudentCentralApp\Models;
 
 
 class CrossListedCourse extends BaseModel

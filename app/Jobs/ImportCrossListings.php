@@ -6,13 +6,13 @@
  */
 
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 
 /**
  * Class GetCombinedSectionInfo
  * Get information of the combined section
- * @package StudentCentralCourseBrowser\Jobs
+ * @package StudentCentralApp\Jobs
  */
 class  ImportCrossListings extends Job
 {

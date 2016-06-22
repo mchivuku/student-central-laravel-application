@@ -5,7 +5,7 @@
  * Date: 5/29/16
  */
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 
 class GlobalNotes extends Job

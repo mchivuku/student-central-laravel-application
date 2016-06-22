@@ -12,13 +12,16 @@
 */
 
 
-ini_set('display_errors',1);
-error_reporting(-1);
+// API routes
+Route::group(['prefix'=>'api'],function(){
 
-Route::get('/', function () {
+    // Grade distribution api
+    Route::group(['prefix'=>'grades'],function(){
 
-    $job = new \StudentCentralCourseBrowser\Jobs\GenerateJSONFiles();
-    $job->execute();
+        Route::get('/', 'GradeDistributionApiController@search');
+        Route::get('/acadTerms', 'GradeDistributionApiController@acadTerms');
+        Route::get('/departments', 'GradeDistributionApiController@departments');
 
-    //return view('welcome');
+    });
+
 });

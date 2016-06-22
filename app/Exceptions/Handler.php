@@ -1,6 +1,6 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Exceptions;
+namespace StudentCentralApp\Exceptions;
 
 use Exception;
 use Illuminate\Validation\ValidationException;

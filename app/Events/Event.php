@@ -1,6 +1,6 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Events;
+namespace StudentCentralApp\Events;
 
 abstract class Event
 {

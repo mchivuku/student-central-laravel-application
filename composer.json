@@ -8,6 +8,7 @@
         "php": ">=5.5.9",
         "laravel/framework": "5.2.*",
         "yajra/laravel-oci8":"5.2.*",
+        "yajra/laravel-pdo-via-oci8": "1.*",
         "league/fractal": "^0.13.0"
     },
     "require-dev": {
@@ -22,8 +23,8 @@
             "database"
         ],
         "psr-4": {
-            "StudentCentralCourseBrowser\\": "app/",
-            "StudentCentralCourseBrowser\\Bootstrap\\": "bootstrap/"
+            "StudentCentralApp\\": "app/",
+            "StudentCentralApp\\Bootstrap\\": "bootstrap/"
         }
     },
     "autoload-dev": {

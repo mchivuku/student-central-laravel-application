@@ -5,7 +5,7 @@
  * Date: 5/18/16
  */
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 class CreateSC911LE3 extends Job
 {

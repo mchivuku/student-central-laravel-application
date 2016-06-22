@@ -5,13 +5,13 @@
  * Date: 6/1/16
  */
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 
 /**
  * Class GetCombinedSectionInfo
  * Get information of the combined section
- * @package StudentCentralCourseBrowser\Jobs
+ * @package StudentCentralApp\Jobs
  */
 class ImportCombinedSectionInfo extends Job
 {

@@ -7,7 +7,7 @@
  */
 
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 /**
 * Class BackUpCourseDB
@@ -43,7 +43,7 @@ class BackupDB extends Job{
 
     protected function truncate_tables($item){
 
-        \DB::connection("student_central_db")->table($item['to'])->truncate();
+        \DB::connection("coursebrowser")->table($item['to'])->truncate();
     }
 
     protected function copy_data($item){
@@ -51,8 +51,8 @@ class BackupDB extends Job{
         //INSERT INTO TABLE2 SELECT * FROM TABLE1
         $sql = sprintf("Insert into %s select * from %s",$item['to'],$item['from']);
 
-        \DB::connection("student_central_db")->transaction(function()use($sql){
-            \DB::connection("student_central_db")->getPdo()->exec( $sql );
+        \DB::connection("coursebrowser")->transaction(function()use($sql){
+            \DB::connection("coursebrowser")->getPdo()->exec( $sql );
         });
 
 

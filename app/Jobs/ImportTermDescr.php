@@ -5,7 +5,7 @@
  * Date: 5/18/16
  */
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 class ImportTermDescr extends Job
 {
@@ -33,7 +33,8 @@ class ImportTermDescr extends Job
         // truncate
         $this->dbextensionsObj->truncate($this->destinationTable);
 
-        $data = collect(\DB::connection("oracle")->select(self::GetTermDescrQuery));
+        $data = collect(\DB::connection("DSSProd")->select(self::GetTermDescrQuery));
+
 
         $this->dbextensionsObj->insert($this->destinationTable, $data,
             function ($item) {

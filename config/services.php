@@ -30,7 +30,7 @@ return [
     ],
 
     'stripe' => [
-        'model' => StudentCentralCourseBrowser\User::class,
+        'model' => StudentCentralApp\User::class,
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
     ],

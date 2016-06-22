@@ -5,7 +5,7 @@
  * Date: 6/9/16
  */
 
-namespace StudentCentralCourseBrowser\Transformers;
+namespace StudentCentralApp\Transformers;
 
 use League\Fractal\TransformerAbstract;
 

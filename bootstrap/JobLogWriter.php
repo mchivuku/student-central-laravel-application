@@ -8,14 +8,14 @@
  */
 
 
-namespace StudentCentralCourseBrowser\Bootstrap;
+namespace StudentCentralApp\Bootstrap;
 
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger as Monolog;
 
 /**
  * Class JobLogWriter - write job log to database.
- * @package StudentCentralCourseBrowser\Bootstrap
+ * @package StudentCentralApp\Bootstrap
  */
 class JobLogWriter extends AbstractProcessingHandler
 {

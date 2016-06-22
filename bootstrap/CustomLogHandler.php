@@ -6,7 +6,7 @@
  * Date: 5/16/16
  * Time: 2:01 PM
  */
-namespace StudentCentralCourseBrowser\Bootstrap;
+namespace StudentCentralApp\Bootstrap;
 
 use Monolog\Logger as Monolog;
 use Illuminate\Log\Writer;
@@ -17,13 +17,13 @@ use Monolog\Handler\StreamHandler;
 /**
  * Class CustomLogHandler
  * Custom handler for logging
- * @package StudentCentralCourseBrowser\Bootstrap
+ * @package StudentCentralApp\Bootstrap
  */
 class CustomLogHandler
 {
 
     private $dbconfig_file = '.dbconfig';
-    private $dbKey =  'student_central_db';
+    private $dbKey =  'coursebrowser';
 
 
     /**

@@ -1,12 +1,12 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Providers;
+namespace StudentCentralApp\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
 /***
  * Class AppServiceProvider
- * @package StudentCentralCourseBrowser\Providers
+ * @package StudentCentralApp\Providers
  */
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,23 +29,23 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(
             'DatabaseExtensions',
-            'StudentCentralCourseBrowser\Jobs\DatabaseExtensions'
+            'StudentCentralApp\Jobs\DatabaseExtensions'
         );
 
         /** App Bind Transformers - for dependency injection */
         $this->app->bind(
             'CourseTransformer',
-            'StudentCentralCourseBrowser\Transformers\CourseTransformer'
+            'StudentCentralApp\Transformers\CourseTransformer'
         );
 
         $this->app->bind(
             'ClassTransformer',
-            'StudentCentralCourseBrowser\Transformers\ClassTransformer'
+            'StudentCentralApp\Transformers\ClassTransformer'
         );
 
         $this->app->bind(
             'ClassDetailsTransformer',
-            'StudentCentralCourseBrowser\Transformers\ClassDetailsTransformer'
+            'StudentCentralApp\Transformers\ClassDetailsTransformer'
         );
 
 

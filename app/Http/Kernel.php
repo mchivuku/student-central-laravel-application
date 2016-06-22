@@ -1,6 +1,6 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Http;
+namespace StudentCentralApp\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
@@ -24,11 +24,11 @@ class Kernel extends HttpKernel
      */
     protected $middlewareGroups = [
         'web' => [
-            \StudentCentralCourseBrowser\Http\Middleware\EncryptCookies::class,
+            \StudentCentralApp\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \StudentCentralCourseBrowser\Http\Middleware\VerifyCsrfToken::class,
+            \StudentCentralApp\Http\Middleware\VerifyCsrfToken::class,
         ],
 
         'api' => [
@@ -44,10 +44,10 @@ class Kernel extends HttpKernel
      * @var array
      */
     protected $routeMiddleware = [
-        'auth' => \StudentCentralCourseBrowser\Http\Middleware\Authenticate::class,
+        'auth' => \StudentCentralApp\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'can' => \Illuminate\Foundation\Http\Middleware\Authorize::class,
-        'guest' => \StudentCentralCourseBrowser\Http\Middleware\RedirectIfAuthenticated::class,
+        'guest' => \StudentCentralApp\Http\Middleware\RedirectIfAuthenticated::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
     ];
 

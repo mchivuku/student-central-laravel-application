@@ -1,6 +1,6 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Http\Requests;
+namespace StudentCentralApp\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 

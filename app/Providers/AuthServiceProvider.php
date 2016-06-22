@@ -1,6 +1,6 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Providers;
+namespace StudentCentralApp\Providers;
 
 use Illuminate\Contracts\Auth\Access\Gate as GateContract;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -13,7 +13,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array
      */
     protected $policies = [
-        'StudentCentralCourseBrowser\Model' => 'StudentCentralCourseBrowser\Policies\ModelPolicy',
+        'StudentCentralApp\Model' => 'StudentCentralApp\Policies\ModelPolicy',
     ];
 
     /**

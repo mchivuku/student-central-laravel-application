@@ -1,6 +1,6 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Utils;
+namespace StudentCentralApp\Utils;
 /**
  * Created by
  * User: IU Communications

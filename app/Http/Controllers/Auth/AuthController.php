@@ -1,10 +1,10 @@
 <?php
 
-namespace StudentCentralCourseBrowser\Http\Controllers\Auth;
+namespace StudentCentralApp\Http\Controllers\Auth;
 
-use StudentCentralCourseBrowser\User;
+use StudentCentralApp\User;
 use Validator;
-use StudentCentralCourseBrowser\Http\Controllers\Controller;
+use StudentCentralApp\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 

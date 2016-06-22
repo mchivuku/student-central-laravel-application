@@ -1,5 +1,5 @@
 <?php
-namespace StudentCentralCourseBrowser\Models;
+namespace StudentCentralApp\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -9,6 +9,6 @@ use Illuminate\Database\Eloquent\Model;
  */
 class BaseModel extends Model
 {
-    protected $connection = 'student_central_db';
+    protected $connection = 'coursebrowser';
 
 }

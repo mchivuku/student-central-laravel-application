@@ -6,7 +6,7 @@
  * Date: 5/16/16
  */
 
-namespace StudentCentralCourseBrowser\Bootstrap;
+namespace StudentCentralApp\Bootstrap;
 
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger as Monolog;

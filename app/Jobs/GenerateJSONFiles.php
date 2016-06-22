@@ -4,13 +4,13 @@
  * User: IU Communications
  * Date: 6/2/16
  */
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 use League\Fractal\Manager;
 use League\Fractal\Resource\Collection as Collection;
 use League\Fractal\Resource\Item;
-use StudentCentralCourseBrowser\Models as Models;
-use StudentCentralCourseBrowser\Transformers\CourseTransformer;
+use StudentCentralApp\Models as Models;
+use StudentCentralApp\Transformers\CourseTransformer;
 use Symfony\Component\Process\Process;
 
 class GenerateJSONFiles extends Job

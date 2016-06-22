@@ -6,7 +6,7 @@
  */
 
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 
 /**
@@ -17,7 +17,7 @@ namespace StudentCentralCourseBrowser\Jobs;
 ! Group table where Line Type = COND. If a record is found, report it
 ! back to the calling procedure.
  *
- * @package StudentCentralCourseBrowser\Jobs
+ * @package StudentCentralApp\Jobs
  */
 class ImportERG extends Job
 {

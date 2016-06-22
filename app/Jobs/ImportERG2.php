@@ -6,7 +6,7 @@
  */
 
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 
 /**
@@ -16,7 +16,7 @@ namespace StudentCentralCourseBrowser\Jobs;
 ! Check the Reserve Capacity table if no departmental consent or other
 ! restriction data found yet for this class section.
  *
- * @package StudentCentralCourseBrowser\Jobs
+ * @package StudentCentralApp\Jobs
  */
 class ImportERG2 extends Job
 {

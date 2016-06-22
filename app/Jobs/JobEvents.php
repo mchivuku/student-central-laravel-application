@@ -5,12 +5,12 @@
  * Date: 5/16/16
  */
 
-namespace StudentCentralCourseBrowser\Jobs;
+namespace StudentCentralApp\Jobs;
 
 
 /**
  * Class JobEvents
- * @package StudentCentralCourseBrowser\Jobs
+ * @package StudentCentralApp\Jobs
  */
 class JobEvents
 {

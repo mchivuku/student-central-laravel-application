@@ -6,7 +6,7 @@
  */
 
 
-namespace StudentCentralCourseBrowser\Models;
+namespace StudentCentralApp\Models;
 
 
 class ClassAttribute extends BaseModel

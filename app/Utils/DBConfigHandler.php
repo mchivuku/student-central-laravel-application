@@ -5,7 +5,7 @@
  * Date: 5/17/16
  */
 
-namespace StudentCentralCourseBrowser\Utils;
+namespace StudentCentralApp\Utils;
 
 /**
  * Class DBConfigHandler
@@ -16,6 +16,7 @@ class DBConfigHandler
 {
 
     public static $connections = [];
+    public static $oracle_connection_keys=["DSSProd","registrar_grade_distribution_db","registrar_contact_form_db"];
 
     /**
      * Function parses DB config file
@@ -43,33 +44,34 @@ class DBConfigHandler
         $ini = array_filter(
             self::parseConfig(),
             function ($key){
-                return $key!='DSSProd';
+                return !in_array($key,self::$oracle_connection_keys);
             },
             ARRAY_FILTER_USE_KEY
         );;
 
         $connections = array_map(function($item){
 
-         return   ['host'=>$item['host'],
-                  'port'=>$item['port'],
-                 'database'=>$item['db'],
-                 'username'=>$item['user'],
-                 'password'=>$item['password'],
-                 'driver'=>'mysql',
-                 'collation'=>'utf8_unicode_ci',
-                 'charset'=>'utf8'];
+            return   ['host'=>$item['host'],
+                'port'=>$item['port'],
+                'database'=>$item['db'],
+                'username'=>$item['user'],
+                'password'=>$item['password'],
+                'driver'=>'mysql',
+                'collation'=>'utf8_unicode_ci',
+                'charset'=>'utf8'];
 
         },$ini);
 
-        $oracle_connection = self::getOracleConnection();
-        if(is_array($connections) && is_array($oracle_connection))
-            return array_merge($connections,['oracle'=>self::getOracleConnection()]);
+        $oracle_conn = ['oracle'=>self::getDSSProdConnection(),
+            'gradesdb'=>self::getRegistrarDBConnection("registrar_grade_distribution_db"),
+            "contactformdb"=>self::getRegistrarDBConnection("registrar_contact_form_db")];
 
-        return "";
+        return array_merge($connections,$oracle_conn);
+
     }
 
 
-    public static function getOracleConnection(){
+    public static function getDSSProdConnection(){
 
         $ini = self::parseConfig();
 
@@ -87,4 +89,16 @@ class DBConfigHandler
         ];
     }
 
+    public static function getRegistrarDBConnection($key){
+        $ini = self::parseConfig();
+        return ["driver"=>"oracle",
+            "host"=>"sasregdt01.uits.iupui.edu","port"=>1521,"tns"=>"",
+            "username"=>$ini[$key]['user'],
+            "database"=>$ini[$key]['db'],
+            "service_name"=>"oem1tst",
+            "password"=>$ini[$key]['password'],
+            "charset"=>"WE8ISO8859P1","prefix"=>"","quoting"=>""];
+
+
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace StudentCentralCourseBrowser;
+namespace StudentCentralApp;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
