@@ -24,4 +24,14 @@ Route::group(['prefix'=>'api'],function(){
 
     });
 
+    // Non standard session data
+    Route::group(['prefix'=>'nonStandardSession'],function(){
+
+        Route::get('/', 'NonStandardSessionApiController@search');
+        Route::get('/acadTerms', 'NonStandardSessionApiController@acadTerms');
+        Route::get('/schools', 'NonStandardSessionApiController@schools');
+        Route::get('/departments', 'NonStandardSessionApiController@departments');
+
+    });
+
 });

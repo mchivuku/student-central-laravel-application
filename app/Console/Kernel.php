@@ -30,7 +30,9 @@ class Kernel extends ConsoleKernel
         Commands\ImportClassAssociations::class,
         Commands\ImportDepartments::class,
         Commands\ImportClassDescriptions::class,
-        Commands\GenerateJSONFiles::class
+        Commands\GenerateJSONFiles::class,
+
+        Commands\ImportNonStandardSessionDates::class
     ];
 
     /**
