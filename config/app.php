@@ -156,6 +156,11 @@ return [
         StudentCentralApp\Providers\EventServiceProvider::class,
         StudentCentralApp\Providers\RouteServiceProvider::class,
 
+        //Filter for course browser
+        StudentCentralApp\Providers\CourseCollectionExtensions::class,
+
+        StudentCentralApp\Providers\CustomMacroServiceProvider::class,
+
         /** Oracle db provider */
          Yajra\Oci8\Oci8ServiceProvider::class,
 
@@ -204,6 +209,9 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
+        'Form' => Collective\Html\FormFacade::class,
+        'Html' => Collective\Html\HtmlFacade::class,
+
 
     ],
 

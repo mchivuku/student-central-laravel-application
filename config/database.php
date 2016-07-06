@@ -1,6 +1,7 @@
 <?php
 
 $connections = \StudentCentralApp\Utils\DBConfigHandler::connections();
+
 return [
 
     /*

@@ -1,4 +1,5 @@
 <?php
+ini_set('memory_limit', '500M');
 
 /*
 |--------------------------------------------------------------------------
@@ -63,5 +64,6 @@ $app->configureMonologUsing(function($monolog) {
         false,$pdo));
 
 });
+
 
 return $app;

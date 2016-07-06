@@ -16,6 +16,10 @@ define('LARAVEL_START', microtime(true));
 
 require __DIR__.'/../vendor/autoload.php';
 
+
+/** autoload filter framework */
+require '/ip/pagriet/lib/filterFramework/autoload.php';
+
 /*
 |--------------------------------------------------------------------------
 | Include The Compiled Class File

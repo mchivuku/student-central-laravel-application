@@ -32,53 +32,26 @@ class Kernel extends ConsoleKernel
         Commands\ImportClassDescriptions::class,
         Commands\GenerateJSONFiles::class,
 
-        Commands\ImportNonStandardSessionDates::class
+        Commands\ImportNonStandardSessionDates::class,
+        Commands\SendJobNotification::class,
+        Commands\ImportIntoCourseBrowserDB::class
     ];
 
     /**
      * Define the application's command schedule.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * @param  \Illuminate\Console\Scheduling\Schedule $schedule
      * @return void
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('job:BackupDB')
-            ->before(function () {
-                // Import Class;
-                Artisan::call('job:CreateSC911LE3');
-
-                //Import Class Associations
-                Artisan::call('job:ImportClassAssociations');
-
-                //Import Class Attributes
-                Artisan::call('job:ImportClassAttributes');
-
-                //Import Class Descriptions
-                Artisan::call('job:ImportClassDescriptions');
-
-                //Import Class Notes
-                Artisan::call('job:ImportClassNotes');
-
-                //Import Combined Section Information
-                Artisan::call('job:ImportClassAssociations');
-
-                //Import Cross Listings
-                Artisan::call('job:ImportCrossListings');
-
-
-                //Import Departments
-                Artisan::call('job:ImportDepartments');
-
-
-                //Import ERG
-                Artisan::call('job:ImportERG');
-
-                //Import ERG2
-                Artisan::call('job:ImportERG2');
-
-            })
-            ->dailyAt('15:42');
+        $schedule->command('import:coursedb')->before(function () {
+                Artisan::call('job:BackupDB');
+                echo 'Completed backup';
+            })->dailyAt('06:10')->after(
+                function() {
+                    Artisan::call('email.notify');
+                });
 
     }
 }

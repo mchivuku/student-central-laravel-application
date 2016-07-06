@@ -18,11 +18,17 @@ use League\Fractal\Resource\Collection;
 use League\Fractal\Resource\Item as Item;
 
 
+
 class BaseApiController extends BaseController
 {
 
     protected $fractal;
     protected $perPage = 10;
+
+    static $success = 200;
+    static $error = 500;
+    static $notfound = 404;
+    static $unauthorized = 403;
 
     public function __construct(Manager $fractal)
     {

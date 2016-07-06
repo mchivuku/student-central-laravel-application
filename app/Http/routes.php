@@ -11,6 +11,21 @@
 |
 */
 
+Route::get("/json",function(){
+
+    $job = new \StudentCentralApp\Jobs\GenerateJSONFiles();
+    $job->execute();
+});
+Route::group(['prefix'=>'courses'],function() {
+    Route::get('/{term}', 'CourseController@index');
+     Route::get('/search/{term}', 'CourseController@search');
+
+});
+
+Route::group(['prefix'=>'crosslisted'],function() {
+    Route::get('/', 'CrossListedCoursesController@index');
+
+});
 
 // API routes
 Route::group(['prefix'=>'api'],function(){
@@ -21,6 +36,8 @@ Route::group(['prefix'=>'api'],function(){
         Route::get('/', 'GradeDistributionApiController@search');
         Route::get('/acadTerms', 'GradeDistributionApiController@acadTerms');
         Route::get('/departments', 'GradeDistributionApiController@departments');
+        Route::get('/reportTypes', 'GradeDistributionApiController@reportTypes');
+        Route::get('/schools', 'GradeDistributionApiController@schools');
 
     });
 
@@ -34,4 +51,23 @@ Route::group(['prefix'=>'api'],function(){
 
     });
 
+
+    // Non standard session data
+    Route::group(['prefix'=>'contactForm'],function(){
+
+        Route::get('/user/{username}', 'ContactFormApiController@getUser');
+        Route::post('/', 'ContactFormApiController@submit');
+        Route::get("/topics",'ContactFormApiController@getTopics');
+
+
+    });
+
+    Route::group(['prefix'=>'courses'],function(){
+
+        Route::get('/genEdReq', 'CourseApiController@genEdRequirements');
+        Route::get('/departments/{term}', 'CourseApiController@departments');
+        Route::get('/instructionModes', 'CourseApiController@instructionMode');
+
+
+    });
 });

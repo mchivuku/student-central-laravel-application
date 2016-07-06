@@ -53,6 +53,7 @@ class NonStandardSessionApiController extends BaseApiController
                 'refund_100'=>isset($item->refund_100)?$item->refund_100:"N/A",
                 'auto_w'=>isset($item->auto_w)?$item->auto_w:"N/A",
                 'refund_75'=>isset($item->refund_75)?$item->refund_75:"N/A",
+                'refund_50'=>isset($item->refund_50)?$item->refund_50:"N/A",
                 'refund_25'=>isset($item->refund_25)?$item->refund_25:"N/A",
                 'pass_fail'=>isset($item->pass_fail)?$item->pass_fail:"N/A"
 

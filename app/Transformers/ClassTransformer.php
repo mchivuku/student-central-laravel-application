@@ -53,14 +53,20 @@ class ClassTransformer extends TransformerAbstract
 
                     }),
 
-                'class_notes_before' => collect($class['class_notes_b'])->map(function ($notes) {
+                "topic"=>isset($class["crs_tpc_desc"])?$class["crs_tpc_desc"]:"",
+                'class_notes_before' => collect($class['class_notes_b'])->unique()->map(function ($notes) {
                     return $this->base_transformer->parseTextForHttpLinks($notes);
                 }),
 
-                'class_notes_after' => collect($class['class_notes_a'])->map(function ($notes) {
+                'class_notes_after' => collect($class['class_notes_a'])->unique()->map(function ($notes) {
                     return $this->base_transformer->parseTextForHttpLinks($notes);
-                })
+                }),
 
+            'class_session'=>['session_code'=>$class['cls_sesn_cd'],'derived_session'=>$class['cls_drvd_sesn_cd'],
+                'session_description'=>$class['cls_sesn_desc']],
+                'instruction_mode'=>['code'=>$class['cls_instrc_mode_cd'],
+                    'short_description'=>$class['cls_instrc_mode_shrt_desc'],
+                    'long_description'=>$class['cls_instrc_mode_desc']]
             ];
         }catch(\Exception $ex){
             var_dump($ex->getTraceAsString());

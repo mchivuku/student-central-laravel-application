@@ -155,7 +155,10 @@ class CreateSC911LE3 extends Job
         X.CLS_CMB_SECT_ID,
           to_number(to_char(B.CLS_MTG_STRT_TM,'hh24'))*60*60+
             to_number(to_char(B.CLS_MTG_STRT_TM,'MI'))*60+
-           to_number(to_char(B.CLS_MTG_STRT_TM,'SS'))  as cls_mtg_strt_tm_sec
+           to_number(to_char(B.CLS_MTG_STRT_TM,'SS'))  as cls_mtg_strt_tm_sec,
+           A.CLS_INSTRC_MODE_CD  ,
+A.CLS_INSTRC_MODE_SHRT_DESC ,
+A.CLS_INSTRC_MODE_DESC
       FROM
         DSS_RDS.SR_CLS_GT A,
         DSS_RDS.SR_CLS_MTG_GT B,

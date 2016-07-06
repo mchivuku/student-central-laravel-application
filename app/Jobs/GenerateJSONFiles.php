@@ -4,14 +4,18 @@
  * User: IU Communications
  * Date: 6/2/16
  */
+
 namespace StudentCentralApp\Jobs;
 
 use League\Fractal\Manager;
 use League\Fractal\Resource\Collection as Collection;
-use League\Fractal\Resource\Item;
 use StudentCentralApp\Models as Models;
 use StudentCentralApp\Transformers\CourseTransformer;
+use StudentCentralApp\Transformers\CrossListedCoursesTransformer;
+use StudentCentralApp\Transformers\TermDepartmentCourseTransformer;
 use Symfony\Component\Process\Process;
+
+ini_set('memory_limit', '500M');
 
 class GenerateJSONFiles extends Job
 {
@@ -41,46 +45,46 @@ class GenerateJSONFiles extends Job
 
         //1.Iterate through terms
         //2.Iterate through departments and build courses and classes;
+        $all_cross_listed_courses = "";
+
         collect($acad_terms)->each(
-
-            function ($term) use ($path) {
-
+            function ($term) use ($path, &$all_cross_listed_courses) {
+                $term_info = Models\TermDescription::acadTerm($term)->first();
 
                 /** Break departments into two sets */
-                $departments= Models\TermDepartment::acadTerm($term)
+                $departments = Models\TermDepartment::acadTerm($term)
                     ->orderBy('crs_subj_dept_cd')->get();
 
-
                 $all_courses = [];
-                $all_cross_listed_courses = [];
 
                 $term_info = Models\TermDescription::acadTerm($term)->first();
                 $term_folder_path = $this->makeTermFolder($term, $path);
+                foreach ($departments as $dept) {
 
+                    $term = $term_info->term;
 
-                    foreach($departments as $dept)
-                    {
+                    // json for each department
+                    $this->buildCourses($term,
+                        $term_info, $dept, $all_courses,
+                        $term_folder_path);
+                }
 
-                        $term = $term_info->term;
+                // cross listings for department.
+                $this->buildCrossListings($term, $term_info, $all_cross_listed_courses);
 
-                        // course json files
-                        $this->buildCourses($term, $term_info, $dept, $all_courses, $term_folder_path);
-
-                        // cross listings for department.
-                        //$this->buildCrossListings($term, $term_info, $dept, $all_cross_listed_courses, $term_folder_path);
-
-
-                    }
-
-
-                $data = (new Collection($all_courses, new CourseTransformer));
-                $this->saveJsonToFile($term_folder_path, $term,
+                $data = new Collection($all_courses,
+                    new TermDepartmentCourseTransformer);
+                $this->saveJsonToFile($term_folder_path,
+                    $term,
                     $this->fractal->createData($data)->toJson());
-
-
             });
 
+        // save the cross listings - outside on the course folder.
+        $data = new Collection($all_cross_listed_courses,
+            new CrossListedCoursesTransformer);
 
+        $this->saveJsonToFile($path, 'crosslisted_courses',
+            $this->fractal->createData($data)->toJson());
     }
 
     /** Make  */
@@ -91,7 +95,8 @@ class GenerateJSONFiles extends Job
 
         // move the current folder to backup
         if (file_exists($path))
-            $this->runProcess('mv  ' . $path . "  " . storage_path() . "/courses/backup/courses_" . date('m-d-Y_Hi'));
+            $this->runProcess('mv  ' . $path . "  " . storage_path()
+                . "/courses/backup/courses_" . date('m-d-Y_Hi'));
 
         // create new current folder.
         $process = $this->runProcess('mkdir ' . $path);
@@ -127,6 +132,14 @@ class GenerateJSONFiles extends Job
         return false;
     }
 
+    /**
+     * Function builds courses
+     * @param $term
+     * @param $term_info
+     * @param $dept
+     * @param $allcourses
+     * @param $term_folder_path
+     */
     protected function buildCourses($term, $term_info, $dept, &$allcourses, $term_folder_path)
     {
 
@@ -137,7 +150,7 @@ class GenerateJSONFiles extends Job
             ->customOrderBy($term)
             ->distinct()->get();
 
-        if(count($classes)==0)return;
+        if (count($classes) == 0) return;
 
 
         /** @var $courses - course can contain multiple classes */
@@ -314,37 +327,61 @@ class GenerateJSONFiles extends Job
                             $notes->nts_long_desc];
                     })->toArray();
 
-                $courses[$crs_catlg_nbr]
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
                 ['class_assoc'][$cls_assct_nbr][$cls_key]
                 ['class_notes_a'] = array_filter(array_flatten($class_notes_a), function ($x) {
                     return isset($x) && $x != '';
                 });
 
-                $courses[$crs_catlg_nbr]
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
                 ['class_assoc'][$cls_assct_nbr][$cls_key]['cls_sesn_cd'] = $cls_sesn_cd;
-                $courses[$crs_catlg_nbr]
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
                 ['class_assoc'][$cls_assct_nbr][$cls_key]['cls_drvd_sesn_cd'] = $cls_sesn_cd;
-                $courses[$crs_catlg_nbr]
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
                 ['class_assoc'][$cls_assct_nbr][$cls_key]['cls_sesn_desc'] = $cls_sesn_desc;
+
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
+                ['class_assoc'][$cls_assct_nbr][$cls_key]['cls_instrc_mode_cd'] =
+                    $class->cls_instrc_mode_cd;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
+                ['class_assoc'][$cls_assct_nbr][$cls_key]['cls_instrc_mode_shrt_desc'] = $class->cls_instrc_mode_shrt_desc;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
+                ['class_assoc'][$cls_assct_nbr][$cls_key]['cls_instrc_mode_desc'] = $class->cls_instrc_mode_desc;
 
             }
 
             /** Course level properties */
             if ($crs_catlg_nbr_keep != $crs_catlg_nbr) {
 
-                $courses[$crs_catlg_nbr]['term'] = ['term' => $term, 'desc' => $term_info->description];
-                $courses[$crs_catlg_nbr]['department'] = ['crs_sub_dept_cd' =>
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['term'] = ['term' => $term,
+                    'desc' => $term_info->description];
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['department'] = ['crs_sub_dept_cd' =>
                     $dept->crs_subj_dept_cd,
                     'crs_subj_desc' => $dept->crs_subj_desc];
 
-                $courses[$crs_catlg_nbr]['crs_desc_line'] = $crs_desc_line;
-                $courses[$crs_catlg_nbr]['crs_subj_dept_cd'] = $crs_subj_dept_cd;
-                $courses[$crs_catlg_nbr]['crs_subj_line'] = $crs_subj_line;
-                $courses[$crs_catlg_nbr]['crs_cmpnt_line']
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['crs_subj_ltr_cd']
+                    = $crs_subj_ltr_cd;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['crs_desc_line'] = $crs_desc_line;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['crs_subj_dept_cd'] = $crs_subj_dept_cd;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['crs_subj_line'] = $crs_subj_line;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['crs_cmpnt_line']
                     = $crs_cmpnt_line;//course type - discussion, lecture, lab etc.
-                $courses[$crs_catlg_nbr]['crs_catlg_nbr'] = $crs_catlg_nbr;
-                $courses[$crs_catlg_nbr]['crs_cmpnt_cd']
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['crs_catlg_nbr'] = $crs_catlg_nbr;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['crs_cmpnt_cd']
                     = $crs_cmpnt_cd;
+
+                if ($cls_assct_max_unt_nbr > $cls_assct_min_unt_nbr)
+                    $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['credit_hrs']
+                        = $cls_assct_max_unt_nbr;
+                else
+                    $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['credit_hrs']
+                        = $cls_assct_min_unt_nbr;
+
+                /** Course attributes - same as class attributes */
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['course_attributes'] =
+                    Models\ClassAttribute::where('cls_key', '=', $cls_key)
+                        ->distinct()->select('crs_attrib_val_cd', 'crs_attrib_val_desc')
+                        ->get()->toArray();
 
             }
 
@@ -353,51 +390,54 @@ class GenerateJSONFiles extends Job
             if ($crs_catlg_nbr != $crs_catlg_nbr_keep && $cls_cmpnt_cd != $crs_cmpnt_cd) {
 
                 $courses
-                [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr]
+                [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr]
                 [$cls_key]['cls_cmpnt_cd'] = $crs_cmpnt_cd;
 
                 $courses
-                [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_cmpnt_desc']
+                [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_cmpnt_desc']
                     = $crs_cmpnt_line;
 
                 if ($crs_desc_line_keep != $crs_desc_line) {
                     $err_badClsAssoc = '** ERROR - ' . $crs_subj_cd . " " . $crs_catlg_nbr . ' **';
-                    $courses[$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]
+                    $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]
                     ['err_badClsAssoc'] = $err_badClsAssoc;
                 }
 
             } else {
 
                 $courses
-                [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_cmpnt_cd']
+                [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_cmpnt_cd']
                     = $crs_cmpnt_cd;
                 $courses
-                [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_cmpnt_desc']
+                [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_cmpnt_desc']
                     = $crs_cmpnt_line;
 
 
                 if ($cls_cmpnt_cd != $crs_cmpnt_cd && $crs_desc_line_keep != $crs_desc_line) {
                     $err_badClsAssoc = '** ERROR - ' . $crs_subj_cd . " " . $crs_catlg_nbr . ' **';
-                    $courses [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]
+                    $courses [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]
                     ['err_badClsAssoc'] = $err_badClsAssoc;
                 }
             }
 
+
+            /** If there is course topic */
             if (trim($crs_tpc_desc) != "") {
+
                 if ($cls_key_keep != $cls_key) {
-                    $courses[$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['crs_tpc_desc'] = 'VT:' . $crs_tpc_desc;;
+                    $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc']
+                    [$cls_assct_nbr][$cls_key]['crs_tpc_desc'] = 'VT:' . $crs_tpc_desc;
+
                 }
             }
 
             if ($cls_key_keep != $cls_key) {
-                //Notes_B
 
-                $ti_crse_list = "";
+                //Notes_B
                 $class_notes_b = Models\ClassNotes::classNotesB($cls_key)
                     ->distinct()
                     ->get()
-                    ->map(function ($notes) use (&$ti_crse_list) {
-
+                    ->map(function ($notes) {
                         return [$notes->nts_nbr_long_desc,
                             $notes->nts_long_desc];
                     })->flatMap(function ($item) {
@@ -406,25 +446,27 @@ class GenerateJSONFiles extends Job
                         return isset($note) && $note != '';
                     })->toArray();
 
-                //Transfer Indiana Initiative;
-                $ti_course = $cls_drvd_sesn_cd . $crs_subj_cd . $crs_catlg_nbr;
-                $CrseRslt = 1;
-
-                $CrseRslt = strpos($ti_crse_list, $ti_course, 0);
-                if ($CrseRslt == 0) {
-                    //Transfer Indiana Initiative
-                    $transferIndianaInitiative = Models\ClassNotes::where('CLS_KEY', '=', $cls_key)
+                // Transfer indiana initiative - save it on the course
+                $transferIndianaInitiative =
+                    Models\ClassNotes::where('CLS_KEY', '=', $cls_key)
                         ->distinct()
                         ->get()->map(function ($note) {
                             if ($note->cls_nts_nbr == $this->ti_inst)
                                 return $note->nts_nbr_long_desc;
-                        });
+                        })->filter(function ($note) {
+                            return isset($note) && $note != "";
+                        })->toArray();
 
+                /** Class Notes - B */
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
+                ['class_assoc']
+                [$cls_assct_nbr][$cls_key]
+                ['class_notes_b'] = $class_notes_b;
 
-                }
-                $courses[$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['class_notes_b'] = $class_notes_b;
-
-                $ti_crse_list = $ti_crse_list . $cls_drvd_sesn_cd . $crs_subj_cd . $crs_catlg_nbr;
+                /** Transfer Indiana Initiative logic - appears on the course */
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
+                ['transfer_indiana_initiative']
+                    = $transferIndianaInitiative;
 
             }
 
@@ -435,8 +477,8 @@ class GenerateJSONFiles extends Job
                 else
                     $holdstars = $cls_nbr;
 
-                $courses[$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_nbr'] = $holdstars;
-                $courses[$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['clsd'] = $cls_clsd_cd;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_nbr'] = $holdstars;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['clsd'] = $cls_clsd_cd;
 
                 //Consent check
                 $cls_cnst_typ_req_cd = "";
@@ -455,7 +497,7 @@ class GenerateJSONFiles extends Job
                         if (count($getERG) > 0) {
                             $cls_cnst_type_req_cd = 'RSTR';
                             $courses
-                            [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_cnst_type_req_cd']
+                            [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_cnst_type_req_cd']
                                 = $cls_cnst_type_req_cd;
                         }
 
@@ -466,7 +508,7 @@ class GenerateJSONFiles extends Job
                             if (count($getERG2) > 0) {
                                 $cls_cnst_type_req_cd = 'RSTR';
                                 $courses
-                                [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr]
+                                [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr]
                                 [$cls_key]['cls_cnst_type_req']
                                     = $cls_cnst_type_req_cd;
                             }
@@ -476,7 +518,7 @@ class GenerateJSONFiles extends Job
                 } else {
 
                     $courses
-                    [$crs_catlg_nbr]['class_assoc']
+                    [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc']
                     [$cls_assct_nbr][$cls_key]['cls_cnst_type_req']
                         = $cls_cnst_typ_req_cd;
                 }
@@ -486,25 +528,25 @@ class GenerateJSONFiles extends Job
 
             /** @var class details $details */
             $details = "";
-
+            $key = "";
             /** Start Time */
             if ($cls_mtg_strt_tm == "")
                 $details['cls_mtg_strt_tm'] = "ARR";
             else
                 $details['cls_mtg_strt_tm'] = $cls_mtg_strt_tm;
-
+            $key .= $details['cls_mtg_strt_tm'];
             /** End Time */
             if ($cls_mtg_end_tm == "")
                 $details['cls_mtg_end_tm'] = "ARR";
             else
                 $details['cls_mtg_end_tm'] = $cls_mtg_end_tm;
-
+            $key .= $details['cls_mtg_end_tm'];
             /** Meeting Pattern */
             if ($class->cls_drvd_mtg_ptrn_cd == " ")
                 $details['cls_drvd_mtg_ptrn_cd'] = "ARR";
             else
                 $details['cls_drvd_mtg_ptrn_cd'] = $class->cls_drvd_mtg_ptrn_cd;
-
+            $key .= $details['cls_drvd_mtg_ptrn_cd'];
             /** Facility  */
             if (trim($facil_bldg_cd) == "") {
                 $details['facil_bldg_cd'] = "ARR";
@@ -513,30 +555,52 @@ class GenerateJSONFiles extends Job
                 $details['facil_bldg_cd'] = str_replace("BL", "", $facil_bldg_cd);
                 $details['facil_bldg_rm_nbr'] = ($facil_bldg_rm_nbr);
             }
+            $key .= $details['facil_bldg_cd'];
 
             /** Instructor  */
             $details['instructor'] = $cls_instr_nm;
-            $courses[$crs_catlg_nbr]
-            ['class_assoc'][$cls_assct_nbr][$cls_key]['details'][] = $details;
+
+            // Instructor assigned sequence number may be different for the same class details
+            if (isset($courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
+                    ['class_assoc'][$cls_assct_nbr][$cls_key]['details']) &&
+                array_key_exists($key, $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
+                ['class_assoc'][$cls_assct_nbr][$cls_key]['details'])
+            ) {
+
+                $instructor = $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
+                ['class_assoc'][$cls_assct_nbr][$cls_key]['details'][$key]['instructor'];
+
+                $explode = explode(";", $instructor);
+
+                if (!(isset($explode) && in_array($details['instructor'], $explode))) {
+                    $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['details']
+                    [$key]['instructor'] .= ";" . $details["instructor"];
+                }
+
+            } else {
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]
+                ['class_assoc'][$cls_assct_nbr][$cls_key]['details'][$key] = $details;
+
+            }
 
 
             if ($cls_key_keep != $cls_key) {
                 $courses
-                [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_enrl_cpcty_nbr']
+                [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_enrl_cpcty_nbr']
                     = $cls_enrl_cpcty_nbr;
 
                 $courses
-                [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_tot_avl_nbr']
+                [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_tot_avl_nbr']
                     = $cls_tot_avl_nbr;
 
                 $courses
-                [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_wlst_tot_nbr']
+                [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_wlst_tot_nbr']
                     = $cls_wlst_tot_nbr;
 
                 // Class Description
                 $courses
-                [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_long_desc']
-                    = $this->GetClassDescriptions($term, $cls_nbr);
+                [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['cls_long_desc']
+                    = $this->getClassDescriptions($term, $cls_nbr);
             }
 
 
@@ -546,7 +610,7 @@ class GenerateJSONFiles extends Job
 
 
                 $courses
-                [$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['crs_mtg_tpc_desc']
+                [$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['crs_mtg_tpc_desc']
                     = $crs_mtg_tpc_desc;
 
             }
@@ -557,9 +621,11 @@ class GenerateJSONFiles extends Job
 
                 // class attributes
                 $attributes = Models\ClassAttribute::where('cls_key', '=', $cls_key)
-                    ->distinct()->select('crs_attrib_val_cd', 'crs_attrib_val_desc')->get()->toArray();
+                    ->distinct()->select('crs_attrib_val_cd', 'crs_attrib_val_desc')
+                    ->get()->toArray();
 
-                $courses[$crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]['class_attributes']
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['class_assoc'][$cls_assct_nbr][$cls_key]
+                ['class_attributes']
                     = $attributes;
 
             }
@@ -585,19 +651,19 @@ class GenerateJSONFiles extends Job
 
         }
 
-        $allcourses[$dept->crs_subj_dept_cd] = $courses;
-
-        if(isset($courses) && count($courses)>0 && $courses!=""){
+        if (isset($courses) && count($courses) > 0 && $courses != "") {
             $data = new Collection($courses, new CourseTransformer);
 
-             if(isset($data))
+            if (isset($data))
                 $this->saveJsonToFile($term_folder_path,
-                     $dept->crs_subj_dept_cd,
-                ($this->fractal->createData($data)->toJson()));
+                    $dept->crs_subj_dept_cd,
+                    ($this->fractal->createData($data)->toJson()));
+            $allcourses[$dept->crs_subj_dept_cd] = ["department" => $dept->crs_subj_dept_cd,
+                "courses" => $courses];
 
         }
 
-        echo $dept->crs_subj_dept_cd. " created the file".PHP_EOL;
+        echo $dept->crs_subj_dept_cd . " created the file" . PHP_EOL;
 
 
     }
@@ -653,7 +719,7 @@ class GenerateJSONFiles extends Job
      * @param $acad_term
      * @param $cls_nbr
      */
-    protected function GetClassDescriptions($acad_term, $cls_nbr)
+    protected function getClassDescriptions($acad_term, $cls_nbr)
     {
         // Class Descriptions
         $class_description = Models\ClassDescription
@@ -690,47 +756,44 @@ class GenerateJSONFiles extends Job
     }
 
     /** Courses that are not offered by the department refer to courses in a different department */
-    protected function buildCrossListings($term, $term_info, $dept, $term_folder_path)
+    protected function buildCrossListings($term,
+                                          $term_info,
+                                          &$all_cross_listed_courses
+    )
     {
 
         $crosslisted_courses = Models\CrossListedCourse
-            ::where('CRS_ATTRIB_VAL_CD', '=', 'AFRI')
-            ->where('ACAD_TERM_CD', '=', $term)
-            ->orderByRaw('CRS_SUBJ_DEPT_CD, CRS_CATLG_NBR, CRS_SUBJ_LTR_CD')
+            ::where('ACAD_TERM_CD', '=', $term)
+            ->orderByRaw('CRS_SUBJ_DEPT_CD,
+             CRS_CATLG_NBR, CRS_SUBJ_LTR_CD')
             ->distinct()->get();
 
 
-        $result = "";
         $crlt_crs_subj_dept_cd_keep = "";
         $crlt_crs_subj_line_keep = "";
 
-
-        $result['term'] = ['term' => $term, 'desc' => $term_info->description];
-        $result['department'] = ['crs_sub_dept_cd' => $dept->crs_sub_dept_cd,
-            'crs_subj_desc' => $dept->crs_subj_desc];
-
         $courses = '';
         $crlt_crs_desc_line_keep = "";
+        $crs_subj_dept_cd_keep = "";
         foreach ($crosslisted_courses as $course) {
+
+            // main department
+            $crs_attrib_val_cd = $course->crs_attrib_val_cd;
+            $crs_subj_dept_cd = $crs_attrib_val_cd;
 
             //Class credits
             $cls_assct_min_unt_nbr = $course->cls_assct_min_unt_nbr;
             $cls_assct_max_unt_nbr = $course->cls_assct_max_unt_nbr;
 
             $crlt_crs_subj_cd = $course->crs_subj_cd;
-
             $crlt_crs_sub_desc = $course->crs_subj_desc;
             $crlt_crs_subj_dept_cd = $course->crs_subj_dept_cd;
 
             $crlt_crs_subj_line = $crlt_crs_sub_desc . " (" . $crlt_crs_subj_dept_cd . ")";
-
-
-            $crlt_crs_subj_ltr_cd = $course->crs_subj_ltr_cd;
             $crlt_crs_catlg_nbr = $course->crs_catlg_nbr;
 
             $crlt_crs_desc = $course->crs_desc;
             $crlt_crs_tpc_desc = $course->crs_tpc_desc;
-            $crlt_crs_desc_use = "";
 
             if ($crlt_crs_tpc_desc != '')
                 $crlt_crs_desc_use = $crlt_crs_tpc_desc;
@@ -742,38 +805,87 @@ class GenerateJSONFiles extends Job
             else
                 $crlt_crs_desc_line = $crlt_crs_subj_cd . " " . $crlt_crs_catlg_nbr . " " . $crlt_crs_desc_use . " ( " . $cls_assct_min_unt_nbr . " CR)";
 
-            if ($crlt_crs_subj_line_keep != $crlt_crs_subj_line || $crlt_crs_subj_dept_cd_keep != $crlt_crs_subj_dept_cd) {
-                $courses[$crlt_crs_subj_dept_cd]['crlt_crs_subj_line'] = $crlt_crs_subj_line;
-                $courses[$crlt_crs_subj_dept_cd]['crlt_crs_subj_dept_cd'] = $crlt_crs_subj_cd;
 
+            if (!isset($courses[$crs_attrib_val_cd]) || (isset($courses[$crs_attrib_val_cd]) &&
+                    !in_array($crlt_crs_subj_dept_cd, $courses[$crs_attrib_val_cd]))
+            ) {
+
+                $courses[$crs_attrib_val_cd]
+                [$crlt_crs_subj_dept_cd]
+                ['crlt_crs_subj_line'] =
+                    $crlt_crs_subj_line;
+                $courses[$crs_attrib_val_cd]
+                [$crlt_crs_subj_dept_cd]
+                ['department'] =
+                    $crlt_crs_subj_dept_cd;
+
+                $courses[$crs_attrib_val_cd]
+                [$crlt_crs_subj_dept_cd]
+                ['crosslisted_for'] =
+                    $crs_attrib_val_cd;
+
+                $courses[$crs_attrib_val_cd]
+                [$crlt_crs_subj_dept_cd]
+                ['crlt_crs_subj_dept_cd'] =
+                    $crlt_crs_subj_cd;
+
+                $courses[$crs_attrib_val_cd]
+                [$crlt_crs_subj_dept_cd]
+                ['term'] = ['term' => $term,
+                    'desc' => $term_info->description];
+            }
+
+
+            if ($crlt_crs_subj_line_keep != $crlt_crs_subj_line || $crlt_crs_subj_dept_cd_keep !=
+                $crs_subj_dept_cd_keep
+            ) {
+                if (!isset($courses[$crs_attrib_val_cd][$crlt_crs_subj_dept_cd]
+                        ['courses']) || !in_array($crlt_crs_desc_line,
+                        $courses[$crs_attrib_val_cd][$crlt_crs_subj_dept_cd]
+                        ['courses'])
+                )
+                    $courses[$crs_attrib_val_cd][$crlt_crs_subj_dept_cd]
+                    ['courses'][] = $crlt_crs_desc_line;
             }
 
             if ($crlt_crs_desc_line_keep != $crlt_crs_desc_line ||
-                $crlt_crs_subj_dept_cd_keep != $crlt_crs_subj_dept_cd
-            ) {
+                $crlt_crs_subj_dept_cd_keep != $crs_subj_dept_cd_keep
+            )
+                if (!isset($courses[$crs_attrib_val_cd][$crlt_crs_subj_dept_cd]
+                        ['courses']) || !in_array($crlt_crs_desc_line,
+                        $courses[$crs_attrib_val_cd][$crlt_crs_subj_dept_cd]
+                        ['courses'])
+                )
+                    $courses[$crs_attrib_val_cd][$crlt_crs_subj_dept_cd]
+                    ['courses'][] = $crlt_crs_desc_line;
 
-                $courses[$crlt_crs_subj_dept_cd]['courses'][] = $crlt_crs_desc_line;
-
-            } else {
-                if ($crlt_crs_subj_line_keep != $crlt_crs_subj_line) {
-                    $courses[$crlt_crs_subj_dept_cd]['courses'][] = $crlt_crs_desc_line;
+                else {
+                    if ($crlt_crs_subj_line_keep != $crlt_crs_subj_line)
+                        if (!isset($courses[$crs_attrib_val_cd][$crlt_crs_subj_dept_cd]
+                                ['courses']) || !in_array($crlt_crs_desc_line,
+                                $courses[$crs_attrib_val_cd][$crlt_crs_subj_dept_cd]
+                                ['courses'])
+                        )
+                            $courses[$crs_attrib_val_cd][$crlt_crs_subj_dept_cd]
+                            ['courses'][] = $crlt_crs_desc_line;
                 }
-            }
-
 
             $crlt_crs_subj_line_keep = $crlt_crs_subj_line;
             $crlt_crs_subj_dept_cd_keep = $crlt_crs_subj_dept_cd;
             $crlt_crs_desc_line_keep = $crlt_crs_desc_line;
+            $crs_subj_dept_cd_keep = $crs_subj_dept_cd;
         }
 
-        $result['courses'] = $courses;
+        $all_cross_listed_courses[$term] =
+            ['term' => $term,
+                'courses' => array_map(function ($course) {
+                    $first_course = current($course);
+                    $term = $first_course['term'];
+                    $dept = $first_course['crosslisted_for'];
+                    return ['term' => $term, 'department' => $dept,
+                        'courses' => $course];
 
-
-        // build all cross listed courses for the term - json
-        $data = (new Collection($crosslisted_courses, new CourseTransformer));
-        $this->saveJsonToFile($term_folder_path, $term,
-            $this->fractal->createData($data)->toJson());
-
+                }, $courses)];
 
     }
 }
