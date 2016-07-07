@@ -48,10 +48,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('import:coursedb')->before(function () {
                 Artisan::call('job:BackupDB');
                 echo 'Completed backup';
-            })->dailyAt('06:10')->after(
+            })->after(
                 function() {
                     Artisan::call('email.notify');
-                });
+                })->dailyAt("06:10");
 
     }
 }

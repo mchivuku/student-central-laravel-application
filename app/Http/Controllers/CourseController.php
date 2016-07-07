@@ -10,6 +10,7 @@ namespace StudentCentralApp\Http\Controllers;
 use Illuminate\Http\Request;
 use StudentCentralApp\Models as Models;
 
+
 class CourseController extends BaseCourseController
 {
 
@@ -17,7 +18,6 @@ class CourseController extends BaseCourseController
         4162 => "/register/schedule-classes/spring-2016.html",
         4165 => "/register/schedule-classes/summer-2016.html"
     ];
-
 
     public function __construct()
     {
@@ -35,20 +35,16 @@ class CourseController extends BaseCourseController
         $genEndAttr = $request->input('genEdReq');
         $instructionMode = $request->input('instrucMode');
         $courseNbr = $request->input("courseNbr");
-
-
         $creditHr = $request->input("creditHr");
         $session = $request->input("session");
         $days = $request->input("days");
 
         /** @var Build Markup $html */
         $html = $this->builder->open()
-            ->attribute('action',
-                $_ENV['HOME_PATH'] . $this->hosted_urls[$term])
+            ->attribute('action',$_ENV['HOME_PATH'] . $this->hosted_urls[$term])
             ->attribute('method', 'GET')
             ->addClass('filter')
-            ->attribute('data-api', $_ENV['HOME_PATH'] .
-                '/_php/laravel-app/public/courses/' . $term);
+            ->attribute('data-api', $_ENV['HOME_PATH'].'/_php/laravel-app/public/courses/' . $term);
 
         $html .= $this->builder->formWrapperOpen()->addClass('thirds');
 
@@ -67,15 +63,8 @@ class CourseController extends BaseCourseController
 
 
         /** @var  $instructionModes */
-        $instructionModes = Models\ClassTable
-            ::select("cls_instrc_mode_cd", "cls_instrc_mode_desc")
-            ->whereIn('cls_instrc_mode_cd',
-                $this->instructionModes)
-            ->distinct()->get()->lists("cls_instrc_mode_desc",
-                "cls_instrc_mode_cd")
-            ->toArray();
+        $instructionModes =$this->getInstructionModes();
 
-        $instructionModes = array_merge(["" => "Instruction modes"], $instructionModes);
 
         $html .= $this->builder->select("GenEd requirement", "genEdReq",
             $requirements,
@@ -122,6 +111,7 @@ class CourseController extends BaseCourseController
         $search = $this->search($term, $request);
 
         /** Selection Wrapper */
+
         $selectionWrapper = $this->builder->selectionWrapper($search['total']);
 
         if (isset($dept) && $dept != "")
@@ -137,10 +127,11 @@ class CourseController extends BaseCourseController
 
         if (isset($courseNbr) && $courseNbr != "")
             $selectionWrapper = $selectionWrapper->filterItem('Course number',
-                $this->course_numbers[$courseNbr], $courseNbr);
+                "Course number: ".$this->course_numbers[$courseNbr], $courseNbr);
+
         if (isset($creditHr) && $creditHr != "")
             $selectionWrapper = $selectionWrapper->filterItem('Credit hour',
-                $this->creditHrs[$creditHr], $creditHr);
+                "Credit hour: ".$creditHr, $creditHr);
 
         $html .= $selectionWrapper;
 
@@ -179,7 +170,6 @@ class CourseController extends BaseCourseController
             return $this->searchByDepartment($term, $json_file, $request);
 
         return $this->searchByTerm($term, $json_file, $request);
-
 
     }
 
@@ -229,12 +219,14 @@ class CourseController extends BaseCourseController
         if (!isset($total)) $total = 0;
         $result = $result->slice($start_index, $this->perPage);
 
-        $courses = "";
+        if($total=="")$total = 0;
+
+
 
         // Append class attributes to the link - instructionMode, class session, days of the week.
         // catlog_nbr, dept, course_letter
 
-        $courses = $this->buildResult($term, $instructionMode, $session, $days, $result);
+        $courses = $this->buildResults($term, $instructionMode, $session, $days, $result);
 
         return ['total' => $total, 'view' =>
             isset($courses) && $courses != "" ? view('coursebrowser.listing')
@@ -277,6 +269,7 @@ class CourseController extends BaseCourseController
      * @param $course
      * @param $creditHrs
      * @return bool
+     * //TODO - Fix credit hours
      */
     function filterByCreditHrs($course, $creditHrs)
     {
@@ -284,7 +277,10 @@ class CourseController extends BaseCourseController
         if (!isset($creditHrs) || $creditHrs == "")
             return true;
 
-        if ($course['credit_hrs'] == $creditHrs)
+        $min = ($creditHrs==1)?1:$creditHrs-1;
+        $max = $creditHrs;
+
+        if ($course['credit_hrs']>$min && $course['credit_hrs']<=$max)
             return true;
 
         return false;
@@ -374,6 +370,7 @@ class CourseController extends BaseCourseController
      * @param $assocSet
      * @param $instructionMode
      * @return bool
+     * TODO - fix - for Tue and Thur - crazy
      */
     function filterByDaysOfWeek($assocSet, $days)
     {
@@ -381,13 +378,37 @@ class CourseController extends BaseCourseController
         if (!isset($days) || $days == "")
             return true;
 
+        /** @var convert days to the meeting pattern values*/
+        $CI = $this;
+        $convert_days = array_map(function($day)use($CI){
+            return array_search($day,$CI->days);
+        },$days);
+
+
         /** @var Inner array $classes */
         $classes = collect($assocSet['associated_classes'])
-            ->filter(function ($set) use ($days) {
-                foreach ($set as $k => $v) {
-                    if (strpos($days, $k) !== false)
-                        return true;
+            ->filter(function ($set) use ($days,$convert_days) {
+                foreach($set as $classkey => $class){
+                    foreach($class['details'] as $detail){
+                        $pattern = $detail['meeting_pattern'];
+                        foreach($convert_days as $lookup){
+                            if(strpos($pattern,$lookup)!==false)
+                            {
+                                //check if we are returning Thurs , Thursday - TR, and Tuesday - T
+                                if($lookup=="T"){
+                                    //check the next letter
+                                    $x = substr($pattern,strpos($pattern,$lookup)+1,1);
+                                    if($x=='R')return false;
+                                    return true;
+                                }
+                                return true;
+
+                            }
+                        }
+
+                    }
                 }
+
                 return false;
             });
 
@@ -456,6 +477,7 @@ class CourseController extends BaseCourseController
         else
             $total = 0;
 
+        if($total=="")$total = 0;
 
         $result = collect($result)->slice($start_index, $this->perPage);
         $courses = $this->buildResults($term, $instructionMode, $session, $days, $result);
@@ -475,22 +497,36 @@ class CourseController extends BaseCourseController
      */
     protected function buildResults($term, $instructionMode, $session, $days, $result)
     {
+
         $courses = "";
         foreach ($result as $c) {
             $x = $c['description_line'];
             $query_string = "";
-            foreach (['term' => $term, 'instrucMode' => $instructionMode, 'session' => $session, 'days' => $days, 'nbr' =>
-                $c['course_subj_letter'] . "-" . $c['course_catalog_nbr'], 'dept' => $c['subject_department_short_desc']] as $k => $v) {
+            foreach (['term' => $term, 'instrucMode' => $instructionMode,
+                         'session' => $session,
+                         'days' => $days,
+                         'nbr' =>
+                $c['course_subj_letter'] . "-" . $c['course_catalog_nbr'],
+                         'dept' => $c['subject_department_short_desc']] as $k => $v) {
 
                 if (isset($v) & $v != "") {
                     if ($query_string != "")
                         $query_string .= "&";
 
-                    $query_string .= "$k=$v";
+                    if(!is_array($v))
+                        $query_string .= "$k=$v";
+                    else{
+                        $str = "";
+                        foreach($v as $item){
+                            if($str!="")
+                                $str.="&";
+                            $str.="$k"."[]=".$item;
+                        }
+                        $query_string.=$str;
+                    }
                 }
 
             }
-
             $link = $_ENV['HOME_PATH'] . "/register/schedule-classes/course.html";
             if ($query_string != "")
                 $link .= "?" . $query_string;
@@ -510,6 +546,140 @@ class CourseController extends BaseCourseController
      */
     public function course(Request $request)
     {
+        // term, instruction mode, department, nbr - letter- number, session
+        $term = $request->get("term");
+        $dept = $request->get("dept");
+        $nbr = $request->get("nbr");
+        $session = $request->get("session");
+        $instructionMode= $request->get("instrucMode");
+        $days = $request->get("days");
+        $courseltr="";
+        $catalogNbr="";
+        if(isset($nbr)){
+            $string = explode("-",$nbr);
+            $courseltr = $string[0];
+            $catalogNbr = $string[1];
+        }
+
+
+        /** 1. get json files */
+        /** build form - with sessions, instruction modes, days, */
+        $sessions = $this->getSessions($term);
+        $instructionModes = $this->getInstructionModes();
+
+        /** @var Build Markup $html */
+        $html = $this->builder->open()
+            ->attribute('action',
+                $_ENV['HOME_PATH'] . "register/schedule-classes/course.html")
+            ->attribute('method', 'GET')
+            ->addClass('filter')
+            ->attribute('data-api', $_ENV['HOME_PATH'] .
+                '/_php/laravel-app/public/course');
+
+        $html .= $this->builder->formWrapperOpen()->addClass('halves');
+        $html .= $this->builder->select("Class session", "session",
+            $sessions,
+            array('class' => "session"), isset($session) ? $session : "");
+
+        $html .= $this->builder->select("Instruction mode", "instrucMode",
+            $instructionModes,
+            array('class' => "instrucMode"), isset($instructionMode) ? $instructionMode : "");
+
+
+        $html .= $this->builder->formWrapperClose();
+
+        $html .= "<div class='grid'>";
+        $html .= $this->builder->checkboxes(array_map(function ($d) use (&$days) {
+            $array = ['label' => $d, 'name' => 'days[]', 'value' => $d];
+            if (isset($days) && in_array($d, $days))
+                $array['attributes'] = ['checked' => 'checked'];
+            return $array;
+        }, $this->days))->header("Day of the week");
+        $html .= "</div>";
+
+
+        $html .= $this->builder->button('Go')->attribute('type', 'submit');
+        $html .= $this->builder->close();
+
+        // selectionWrapper , search get course
+
+        // get course
+        $json_file = storage_path("courses/current/$term/$dept.json");
+        $courses = json_decode(file_get_contents($json_file),true);
+
+        $course = collect($courses['data'])->filter(function($c)use($catalogNbr,$courseltr){
+
+            if((isset($courseltr) && $c['course_subj_letter']==$courseltr) &&
+                (isset($catalogNbr) && $c['course_catalog_nbr']==$catalogNbr))
+                return true;
+
+            return false;
+        });
+
+        /** return course if no class attributes are selected */
+        /** filter classes in the course */
+
+        $course = collect($course)->map(function($set)use($instructionMode,$days,$session){
+            $course['description_line']=$set['description_line'];
+            $course['course_subj_letter']=$set['course_subj_letter'];
+            $course['subject_department_short_desc']=$set['subject_department_short_desc'];
+            $course['subject_department_long_desc']=$set['subject_department_long_desc'];
+            $course['component_short_desc']=$set['component_short_desc'];
+            $course['component_long_desc']=$set['component_long_desc'];
+            $course['credit_hrs']=$set['credit_hrs'];
+            $course['course_attributes']=$set['course_attributes'];
+            $course['course_catalog_nbr']=$set['course_catalog_nbr'];
+            $course['associated_classes']=
+                collect($set['associated_classes'])
+                    ->filter(function($class)use($days,$instructionMode,$session){
+
+                $inst_mode_check = true;
+                $sesion_check = true;
+                $days_check = true;
+
+                $c = current($class);
+
+                /* instruction mode */
+                if (isset($instructionMode))
+                {
+                    if($c['instruction_mode']['code'] == $instructionMode)
+                        $inst_mode_check=true;
+                    else
+                        $inst_mode_check=false;
+
+                }
+
+                /** session check */
+                if (isset($session))
+                {
+                    if($c['class_session']['session_code'] == $session)
+                        $sesion_check=true;
+                    else
+                        $sesion_check=false;
+
+                }
+
+              //  if(isset($days) && collect($c['details'])->pluck('meeting_pattern')->toArray())
+                //    $days_check=true;
+               // else
+                 //   $days_check=false;
+
+
+                return $inst_mode_check && $sesion_check && $days_check;
+
+            })->toArray();
+
+
+            return $course;
+        });
+
+
+        $view =(view('coursebrowser.course')
+            ->with('course',current($course->toArray()))->render());
+
+        $html.=$this->builder->resultsWrapper($view);
+
+        echo $html;
 
     }
 

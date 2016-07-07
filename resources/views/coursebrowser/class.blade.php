@@ -1,30 +1,19 @@
+<?php
+uasort($class, function($c1,$c2){
+   if(strpos("*****",$c1['class_number'])!==false)
+       return -1;
+
+   if(strpos("*****",$c2['class_number'])!==false)
+       return 1;
+
+    if($c1['class_number']==$c2['class_number'])return 0;
+
+    return $c1['class_number']<$c2['class_number']?-1:1;
+});
+?>
 @foreach($class as $c)
-    <?php
-
-    /** @var Each class inside associated class list $c */
-
-    // display closed - if closed
-    $class_title["clsd"] = $c["class_closed"];
-
-    //class number
-    $class_title["classNbr"] = $c["class_number"];
-
-    // consent - if present
-    $class_title["consent"] = $c["consent_type_requirement"];
-
-    // Available - seats
-    $class_title["seats"] = "Seats: &nbsp;" . $c["enrollment_capacity"] . ", " .
-            "Avail:&nbsp;" . $c["total_available"] . ", " . "Wait:&nbsp;" . $c["waitlisted_total_number"];
-
-    $first_line = $c['topic'];
-    $second_line = implode("&nbsp;", array_map(function ($x) {
-        return $x;
-    }, $class_title));
-    ?>
-
 
     @if(isset($c["class_notes_before"]) && $c["class_notes_before"]!="")
-        <p><strong>Class notes(before):&nbsp;</strong></p>
         {!! Html::renderNotes($c['class_notes_before']) !!}
     @endif
 
@@ -33,27 +22,47 @@
         <p>Component:&nbsp;{{$c['component_long_description']}}</p>
     @endif
 
-    <p><strong>{{$first_line}}</strong></p>
-    <p><strong>{{$second_line}}</strong></p>
-    <p><strong>Class details:&nbsp;</strong></p>
-    <ul>
-        @foreach($c['details'] as $detail)
-            <li>
-                {{isset($detail["instructor"])&&$detail["instructor"]!=""?
-                $detail["instructor"]:"&mdash;"}}, {{$detail["meeting_pattern"]}},
-                {{$detail["start_time"]}}&mdash;{{$detail["end_time"]}}
-                ,{{$detail["facility_bldg_code"]}}&mdash;{{$detail["facility_bldg_rm_number"]}}
-            </li>
-        @endforeach
-    </ul>
+    <dl class="inline">
+        @if($c['topic']!="")
+            <dt>Topic: </dt>
+            <dd>{{$c['topic']}}</dd>
+        @endif
 
-    <p><strong>Class notes(after):&nbsp;</strong></p>
+            <dt>Class number: </dt>
+            <dd>{{$c["class_number"]}}
+                @if($c["class_closed"]!="")
+                    {{$c["class_closed"]}}
+                @endif
+            </dd>
+            @if($c["consent_type_requirement"]!="")
+                <dt>Class consent: </dt>
+                <dd>{{$c["consent_type_requirement"]}}</dd>
+            @endif
+            <dt>Seats: </dt>
+            <dd>{{$c["enrollment_capacity"]}}</dd>
+            <dt>Available: </dt>
+            <dd>{{$c["total_available"]}}</dd>
+            <dt>Wait: </dt>
+            <dd>{{$c["waitlisted_total_number"]}}</dd>
+
+    </dl>
+    <dl>
+            @foreach($c['details'] as $detail)
+            <dt>Class information: </dt>
+                <dd> {{isset($detail["instructor"])&&$detail["instructor"]!=""?
+                     $detail["instructor"]:"&nbsp;"}}, {{$detail["meeting_pattern"]}},
+                    {{$detail["start_time"]}}&mdash;{{$detail["end_time"]}}
+                    ,{{$detail["facility_bldg_code"]}}&nbsp;{{$detail["facility_bldg_rm_number"]}}
+                </dd>
+            @endforeach
+
+    </dl>
     {!! Html::renderNotes($c['class_notes_after']) !!}
 
     @if(isset($class['long_description']))
-          <p><strong>Class description:</strong></p>
-            {{$class['long_description']}}
+        <p><strong>Class description:</strong></p>
+        {{$class['long_description']}}
     @endif
-
+<hr/>
 @endforeach
 

@@ -18,7 +18,8 @@ class BaseCourseController extends Controller
     protected $genEd = ['0GENEDEC',
         '0GENEDMM', '0GENEDAH', '0GENEDSH', '0GENEDNM', '0GENEDWL', '0GENEDWC'];
 
-    protected $days = ["M"=>"Mon","T"=>"Tue","W"=>"Wed","Th"=>"Thurs","F"=>"Fri"];
+    protected $days = ["M"=>"Mon",
+        "T"=>"Tue","W"=>"Wed","TR"=>"Thurs","F"=>"Fri"];
 
     //('P','OA','OI','HY')
     protected $instructionModes = ['P', 'OA', 'OI', 'HY'];
@@ -48,16 +49,21 @@ class BaseCourseController extends Controller
 
         /** @var Departments $departments */
         if ($term != "")
-            $departments = Models\TermDepartment::acadTerm($term)
+            $departments = Models\TermDepartment::acadTerm($term)->select(\DB::connection("coursebrowser")
+                ->raw("
+                CONCAT(crs_subj_desc,\" (\",crs_subj_dept_cd,\")\") as crs_subj_desc,crs_subj_dept_cd as crs_subj_dept_cd "))
                 ->orderBy('crs_subj_dept_cd')
-                ->get()->lists("crs_subj_desc",
-                    "crs_subj_dept_cd")
+                ->get()->pluck("crs_subj_desc","crs_subj_dept_cd")
                 ->toArray();
         else
-            $departments = Models\TermDepartment::orderBy('crs_subj_dept_cd')
-                ->distinct()->lists("crs_subj_desc",
-                    "crs_subj_dept_cd")
+            $departments = Models\TermDepartment::
+            select(\DB::connection("coursebrowser")
+                ->raw("
+                CONCAT(crs_subj_desc,\" (\",crs_subj_dept_cd,\")\") as crs_subj_desc,crs_subj_dept_cd as crs_subj_dept_cd "))->orderBy('crs_subj_dept_cd')
+                ->distinct()->pluck("crs_subj_desc","crs_subj_dept_cd")
                 ->toArray();
+
+
 
         $departments = array_merge(["" => "Departments"], $departments);
         return $departments;
@@ -89,5 +95,18 @@ class BaseCourseController extends Controller
 
         $sessions = array_merge(["" => "Class session"], $sessions);
         return $sessions;
+    }
+
+    protected function getInstructionModes(){
+        $instructionModes = Models\ClassTable
+            ::select("cls_instrc_mode_cd", "cls_instrc_mode_desc")
+            ->whereIn('cls_instrc_mode_cd',
+                $this->instructionModes)
+            ->distinct()->get()->lists("cls_instrc_mode_desc",
+                "cls_instrc_mode_cd")
+            ->toArray();
+        $instructionModes = array_merge(["" => "Instruction modes"], $instructionModes);
+
+        return $instructionModes;
     }
 }

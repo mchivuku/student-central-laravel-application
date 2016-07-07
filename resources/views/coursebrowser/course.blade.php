@@ -1,4 +1,3 @@
-<p>{{$course["description_line"]}} </p>
 <!-- Sort classes in the associated set so that credit offering class appears first -->
 
 <?php
@@ -14,17 +13,16 @@ usort($associated_classes,function($a,$b)use($crs_component){
             strcmp($a['component_short_description'], $crs_component):0;
     if($cls_cmpt_a==$cls_cmpt_b)return 0;
 
-    return $cls_cmpt_a<$cls_cmpt_b?-1:1;
+    return $cls_cmpt_a<$cls_cmpt_b?1:-1;
 });
-
 
 ?>
 
-<!-- Loop Through each associated class set -->
-
-<!-- loop through each set -->
+<!-- Loop through each associated class set -->
 @foreach($associated_classes as $class)
-    @include('coursebrowser.class',['class'=>$class,'course_component'=>
-    isset($course['component_short_description'])?$course['component_short_description']:""])
+    <p>{{$course["description_line"]}} </p>
+
+    @include('coursebrowser.class',['class'=>$class,
+    'course_component'=>isset($course['component_short_desc'])?$course['component_short_desc']:""])
 @endforeach
 

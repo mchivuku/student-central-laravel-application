@@ -19,8 +19,10 @@ Route::get("/json",function(){
 Route::group(['prefix'=>'courses'],function() {
     Route::get('/{term}', 'CourseController@index');
      Route::get('/search/{term}', 'CourseController@search');
-
 });
+
+Route::get('/course', 'CourseController@course');
+
 
 Route::group(['prefix'=>'crosslisted'],function() {
     Route::get('/', 'CrossListedCoursesController@index');
@@ -70,4 +72,7 @@ Route::group(['prefix'=>'api'],function(){
 
 
     });
+
+
+
 });

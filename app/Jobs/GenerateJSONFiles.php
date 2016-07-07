@@ -370,12 +370,9 @@ class GenerateJSONFiles extends Job
                 $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['crs_cmpnt_cd']
                     = $crs_cmpnt_cd;
 
-                if ($cls_assct_max_unt_nbr > $cls_assct_min_unt_nbr)
-                    $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['credit_hrs']
-                        = $cls_assct_max_unt_nbr;
-                else
-                    $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['credit_hrs']
-                        = $cls_assct_min_unt_nbr;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['min_credit_hrs'] = $cls_assct_min_unt_nbr;
+                $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['max_credit_hrs']=$cls_assct_max_unt_nbr;
+
 
                 /** Course attributes - same as class attributes */
                 $courses[$crs_subj_cd . "-" . $crs_catlg_nbr]['course_attributes'] =

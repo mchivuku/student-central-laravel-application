@@ -53,7 +53,9 @@ class CourseTransformer extends TransformerAbstract
                 'subject_department_long_desc' => isset($course['crs_subj_line'])?$course['crs_subj_line']:"",
                 'component_short_desc' => isset($course['crs_cmpnt_cd'])?$course['crs_cmpnt_cd']:"",
                 'component_long_desc' => isset($course['crs_cmpnt_line'])?$course['crs_cmpnt_line']:"",
-                'credit_hrs'=>isset($course['credit_hrs'])?$course['credit_hrs']:"",
+                'min_credit_hrs'=>isset($course['min_credit_hrs'])?$course['min_credit_hrs']:"",
+                'max_credit_hrs'=>isset($course['max_credit_hrs'])?$course['max_credit_hrs']:"",
+
                 'course_attributes' => isset($course["course_attributes"])?collect($course['course_attributes'])
                     ->map(function ($attribute) {
                         return ['attribute_code' => $attribute['crs_attrib_val_cd'],
