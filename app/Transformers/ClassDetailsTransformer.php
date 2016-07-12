@@ -24,7 +24,7 @@ class ClassDetailsTransformer extends TransformerAbstract
     public function transform($details)
     {
 
-        try{
+
             return [
                 'start_time'=>ltrim($details['cls_mtg_strt_tm'],'0'),
                 'end_time'=>ltrim($details['cls_mtg_end_tm'],'0'),
@@ -33,10 +33,7 @@ class ClassDetailsTransformer extends TransformerAbstract
                 'facility_bldg_rm_number'=>$details['facil_bldg_rm_nbr'],
                 'instructor'=>isset($details['instructor'])?$details['instructor']:""
             ];
-        }catch(\Exception $ex){
 
-            var_dump($ex->getTraceAsString());
-        }
 
 
     }

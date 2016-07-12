@@ -46,15 +46,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-           /* $schedule->command('import:coursedb')->before(function () {
+             $schedule->command('import:coursedb')->before(function () {
                  Artisan::call('job:BackupDB');
                  echo 'Completed backup';
             })->after(
                 function() {
                     Artisan::call('email.notify');
-            })->dailyAt("06:05");*/
+            })->dailyAt("06:05");
 
-      $schedule->command('job:GenerateJSONFiles')->dailyAt('08:54');
+     // $schedule->command('job:GenerateJSONFiles')->dailyAt('08:54');
 
 
     }

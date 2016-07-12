@@ -32,7 +32,7 @@ class ClassTransformer extends TransformerAbstract
      */
     public function transform($class)
     {
-        try {
+
             return [
                 'component_short_description' => $class['cls_cmpnt_cd'],
                 'component_long_description' => $class['cls_cmpnt_desc'],
@@ -70,10 +70,7 @@ class ClassTransformer extends TransformerAbstract
                     'short_description'=>$class['cls_instrc_mode_shrt_desc'],
                     'long_description'=>$class['cls_instrc_mode_desc']]
             ];
-        }catch(\Exception $ex){
-            var_dump($ex->getTraceAsString());
-            exit;
-        }
+
     }
 
 }

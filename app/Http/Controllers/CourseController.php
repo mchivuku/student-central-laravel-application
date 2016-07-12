@@ -592,7 +592,6 @@ class CourseController extends BaseCourseController
         $html .= $this->builder->close();
 
         // selectionWrapper , search get course
-
         // get course
         $json_file = storage_path("courses/current/$term/$dept.json");
         $courses = json_decode(file_get_contents($json_file), true);
@@ -605,80 +604,79 @@ class CourseController extends BaseCourseController
                 return true;
 
             return false;
-        });
+        })->toArray();
 
         /** return course if no class attributes are selected */
         /** filter classes in the course */
+        $associated_classes =
+               collect($course)->map(function($set)use ($days, $instructionMode, $session){
+                  return  collect($set['associated_classes'])
+                       ->map(function ($associated_classes)
+                       use ($days, $instructionMode, $session) {
+                           return ['min_credit_hrs' =>
+                               $associated_classes['min_credit_hrs'],
+                               'max_credit_hrs' => $associated_classes['max_credit_hrs'],
+                                'classes'=>collect($associated_classes['classes'])
+                                   ->filter(function ($class) use ($days, $instructionMode, $session) {
 
-        $course = collect($course)->map(function ($set) use ($instructionMode, $days, $session) {
-            $course['description_line'] = $set['description_line'];
-            $course['course_subj_letter'] = $set['course_subj_letter'];
-            $course['subject_department_short_desc'] = $set['subject_department_short_desc'];
-            $course['subject_department_long_desc'] = $set['subject_department_long_desc'];
-            $course['component_short_desc'] = $set['component_short_desc'];
-            $course['component_long_desc'] = $set['component_long_desc'];
-            $course['course_attributes'] = $set['course_attributes'];
-            $course['course_catalog_nbr'] = $set['course_catalog_nbr'];
-            $course['associated_classes'] =
-                collect($set['associated_classes'])
-                    ->map(function ($associated_classes)
-                    use ($days, $instructionMode, $session) {
-                        return ['min_credit_hrs' =>
-                            $associated_classes['min_credit_hrs'],
-                            'max_credit_hrs' => $associated_classes['max_credit_hrs'],
-                            'classes' => collect($associated_classes['classes'])
-                                ->filter(function ($class) use ($days, $instructionMode, $session) {
+                                       $inst_mode_check = true;
+                                       $session_check = true;
+                                       $days_check = true;
 
-                                    $inst_mode_check = true;
-                                    $sesion_check = true;
-                                    $days_check = true;
+                                       /* instruction mode */
+                                       if (isset($instructionMode)) {
+                                           if ($class['instruction_mode']['code'] == $instructionMode)
+                                               $inst_mode_check = true;
+                                           else
+                                               $inst_mode_check = false;
 
-                                    /* instruction mode */
-                                    if (isset($instructionMode)) {
-                                        if ($class['instruction_mode']['code'] == $instructionMode)
-                                            $inst_mode_check = true;
-                                        else
-                                            $inst_mode_check = false;
+                                       }
 
-                                    }
+                                       /** session check */
 
-                                    /** session check */
-                                    if (isset($session)) {
-                                        if ($class['class_session']['session_code'] == $session)
-                                            $sesion_check = true;
-                                        else
-                                            $sesion_check = false;
+                                       if (isset($session) && $session!="") {
+                                           if ($class['class_session']['session_code'] == $session)
+                                               $session_check = true;
+                                           else
+                                           {
 
-                                    }
-
-                                    if (isset($days) && $days != "") {
-                                        $patterns = collect($class['details'])
-                                            ->pluck('meeting_pattern')->toArray();
-
-                                        foreach ($patterns as $p) {
-                                            foreach ($days as $d) {
-                                                if (stripos($p, $d) !== false) {
-                                                    $days_check = true;
-                                                    break;
-                                                } else
-                                                    $days_check = false;
-                                            }
-                                        }
-                                    }
-
-                                    return $inst_mode_check && $sesion_check && $days_check;
-
-                                })->toArray()
-                        ];
-                    })->toArray();
+                                               $session_check = false;
+                                           }
 
 
-            return $course;
-        });
+                                       }
+
+                                       if (isset($days) && $days != "") {
+                                           $patterns = collect($class['details'])
+                                               ->pluck('meeting_pattern')->toArray();
+
+                                           foreach ($patterns as $p) {
+                                               foreach ($days as $d) {
+                                                   if (stripos($p, $d) !== false) {
+                                                       $days_check = true;
+                                                       break;
+                                                   } else
+                                                       $days_check = false;
+                                               }
+                                           }
+                                       }
+
+
+                                       return $inst_mode_check && $session_check && $days_check;
+
+                                   })->toArray()
+                           ];
+                       });
+               })->toArray();
+
+        $course = current($course);
+        if(isset($associated_classes)){
+            $course['associated_classes']=$associated_classes;;
+        }
 
 
         $view = (view('coursebrowser.course')
-            ->with('course', current($course->toArray()))->render());
+            ->with('course', ($course))->render());
 
         $html .= $this->builder->resultsWrapper($view);
 

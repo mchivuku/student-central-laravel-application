@@ -33,7 +33,6 @@ class CourseTransformer extends TransformerAbstract
          //individual classes to construct classes array */
         $classes="";
 
-        try {
 
             if(isset($course['class_assoc'])){
                 $classes = collect($course['class_assoc'])
@@ -78,10 +77,6 @@ class CourseTransformer extends TransformerAbstract
 
             ];
 
-        } catch (\Exception $ex) {
-            echo $ex->getMessage();
-            var_dump($ex->getTraceAsString());exit;
-        }
 
     }
 

@@ -39,7 +39,7 @@ class GenerateJSONFiles extends Job
         $acad_terms = $this->getAcadTerms();
 
         /** @var Root Folder - that has date_timestamp $path */
-      $path = $this->makeCoursesFolder();
+        $path = $this->makeCoursesFolder();
 
 
         //1.Iterate through terms

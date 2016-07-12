@@ -8,19 +8,12 @@ $crs_component = isset($course["component_short_desc"]) ? $course["component_sho
 
         <!-- Loop through each associated class set -->
 
-@foreach($course['associated_classes'] as $class)
-    <?php
-
-    $associated_classes = $class['classes'];
-
-
-    ?>
-
-
-    @include('coursebrowser.class',['class'=>$associated_classes,
+@foreach($course['associated_classes'] as $k=>$v)
+ @foreach($v as $key=>$classes)
+    @include('coursebrowser.class',['class'=>$classes['classes'],
 'course_component'=>isset($course['component_short_desc'])
 ?$course['component_short_desc']:""])
-
+    @endforeach
 @endforeach
 
 

@@ -76,9 +76,7 @@ abstract class Job
 
         }catch(\Exception $ex){
 
-            var_dump($ex->getTraceAsString());
-            exit;
-            /** Log message - job failed */
+             /** Log message - job failed */
              \Log::error($this->_jobName,
                 Utils\JobLogUtils::createLogInfo($this->_jobName,JobEvents::JOB_FAIL,
                    $ex->getMessage(),$ex));
