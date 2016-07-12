@@ -2,27 +2,25 @@
 
 <?php
 /** sort classes by component - with credit component first */
-$crs_component = isset($course["component_short_desc"])?$course["component_short_desc"]:"";
-$associated_classes = $course["associated_classes"];
-usort($associated_classes,function($a,$b)use($crs_component){
-
-
-    $cls_cmpt_a =isset($a['component_short_description'])?
-            strcmp($a['component_short_description'],$crs_component):0;
-    $cls_cmpt_b =  isset($a['component_short_description'])?
-            strcmp($a['component_short_description'], $crs_component):0;
-    if($cls_cmpt_a==$cls_cmpt_b)return 0;
-
-    return $cls_cmpt_a<$cls_cmpt_b?1:-1;
-});
+$crs_component = isset($course["component_short_desc"]) ? $course["component_short_desc"] : "";
 
 ?>
 
-<!-- Loop through each associated class set -->
-@foreach($associated_classes as $class)
-    <p>{{$course["description_line"]}} </p>
+        <!-- Loop through each associated class set -->
 
-    @include('coursebrowser.class',['class'=>$class,
-    'course_component'=>isset($course['component_short_desc'])?$course['component_short_desc']:""])
+@foreach($course['associated_classes'] as $class)
+    <?php
+
+    $associated_classes = $class['classes'];
+
+
+    ?>
+
+
+    @include('coursebrowser.class',['class'=>$associated_classes,
+'course_component'=>isset($course['component_short_desc'])
+?$course['component_short_desc']:""])
+
 @endforeach
+
 

@@ -41,10 +41,10 @@ class CourseController extends BaseCourseController
 
         /** @var Build Markup $html */
         $html = $this->builder->open()
-            ->attribute('action',$_ENV['HOME_PATH'] . $this->hosted_urls[$term])
+            ->attribute('action', $_ENV['HOME_PATH'] . $this->hosted_urls[$term])
             ->attribute('method', 'GET')
             ->addClass('filter')
-            ->attribute('data-api', $_ENV['HOME_PATH'].'/_php/laravel-app/public/courses/' . $term);
+            ->attribute('data-api', $_ENV['HOME_PATH'] . '/_php/laravel-app/public/courses/' . $term);
 
         $html .= $this->builder->formWrapperOpen()->addClass('thirds');
 
@@ -63,7 +63,7 @@ class CourseController extends BaseCourseController
 
 
         /** @var  $instructionModes */
-        $instructionModes =$this->getInstructionModes();
+        $instructionModes = $this->getInstructionModes();
 
 
         $html .= $this->builder->select("GenEd requirement", "genEdReq",
@@ -127,11 +127,11 @@ class CourseController extends BaseCourseController
 
         if (isset($courseNbr) && $courseNbr != "")
             $selectionWrapper = $selectionWrapper->filterItem('Course number',
-                "Course number: ".$this->course_numbers[$courseNbr], $courseNbr);
+                "Course number: " . $this->course_numbers[$courseNbr], $courseNbr);
 
         if (isset($creditHr) && $creditHr != "")
             $selectionWrapper = $selectionWrapper->filterItem('Credit hour',
-                "Credit hour: ".$creditHr, $creditHr);
+                "Credit hour: " . $creditHr, $creditHr);
 
         $html .= $selectionWrapper;
 
@@ -151,13 +151,7 @@ class CourseController extends BaseCourseController
     public function search($term, Request $request)
     {
 
-        $genEd = $request->input('genEdReq');
         $dept = $request->input('dept');
-        $instructionMode = $request->input('instrucMode');
-        $courseNbr = $request->input("courseNbr");
-        $creditHr = $request->input("creditHr");
-
-        $page = $request->input("page");
 
         $json_file = isset($dept) ? storage_path("courses/current/$term/$dept.json") :
             storage_path("courses/current/$term/$term.json");
@@ -219,8 +213,7 @@ class CourseController extends BaseCourseController
         if (!isset($total)) $total = 0;
         $result = $result->slice($start_index, $this->perPage);
 
-        if($total=="")$total = 0;
-
+        if ($total == "") $total = 0;
 
 
         // Append class attributes to the link - instructionMode, class session, days of the week.
@@ -251,7 +244,7 @@ class CourseController extends BaseCourseController
         /** @var Inner array $classes */
         $classes = collect($assocSet['associated_classes'])
             ->filter(function ($set) use ($instructionMode) {
-                foreach ($set as $k => $v) {
+                foreach ($set['classes'] as $k => $v) {
                     if ($v['instruction_mode']['code'] == $instructionMode)
                         return true;
                 }
@@ -277,10 +270,10 @@ class CourseController extends BaseCourseController
         if (!isset($creditHrs) || $creditHrs == "")
             return true;
 
-        $min = ($creditHrs==1)?1:$creditHrs-1;
+        $min = ($creditHrs == 1) ? 1 : $creditHrs - 1;
         $max = $creditHrs;
 
-        if ($course['credit_hrs']>$min && $course['credit_hrs']<=$max)
+        if ($course['min_credit_hrs'] > $min && $course['max_credit_hrs'] <= $max)
             return true;
 
         return false;
@@ -352,7 +345,7 @@ class CourseController extends BaseCourseController
         /** @var Inner array $classes */
         $classes = collect($assocSet['associated_classes'])
             ->filter(function ($set) use ($session) {
-                foreach ($set as $k => $v) {
+                foreach ($set['classes'] as $k => $v) {
                     if ($v['class_session']['session_code'] == $session)
                         return true;
                 }
@@ -378,32 +371,23 @@ class CourseController extends BaseCourseController
         if (!isset($days) || $days == "")
             return true;
 
-        /** @var convert days to the meeting pattern values*/
+        /** @var convert days to the meeting pattern values */
         $CI = $this;
-        $convert_days = array_map(function($day)use($CI){
-            return array_search($day,$CI->days);
-        },$days);
+        $convert_days = array_map(function ($day) use ($CI) {
+            return array_search($day, $CI->days);
+        }, $days);
 
 
         /** @var Inner array $classes */
         $classes = collect($assocSet['associated_classes'])
-            ->filter(function ($set) use ($days,$convert_days) {
-                foreach($set as $classkey => $class){
-                    foreach($class['details'] as $detail){
+            ->filter(function ($set) use ($days, $convert_days) {
+                foreach ($set['classes'] as $classkey => $class) {
+                    foreach ($class['details'] as $detail) {
                         $pattern = $detail['meeting_pattern'];
-                        foreach($convert_days as $lookup){
-                            if(strpos($pattern,$lookup)!==false)
-                            {
-                                //check if we are returning Thurs , Thursday - TR, and Tuesday - T
-                                if($lookup=="T"){
-                                    //check the next letter
-                                    $x = substr($pattern,strpos($pattern,$lookup)+1,1);
-                                    if($x=='R')return false;
-                                    return true;
-                                }
+                        foreach ($convert_days as $lookup) {
+                            if (strpos($pattern, $lookup) !== false)
                                 return true;
 
-                            }
                         }
 
                     }
@@ -416,6 +400,61 @@ class CourseController extends BaseCourseController
             return true;
 
         return false;
+    }
+
+    /**
+     * Build results for the listing page
+     * @param $instructionMode
+     * @param $session
+     * @param $days
+     * @param $result
+     */
+    protected function buildResults($term, $instructionMode, $session, $days, $result)
+    {
+
+        $courses = "";
+
+        foreach ($result as $c) {
+            //TODO: check if this can be removed
+            if ($c == "") return;
+
+            $x = $c['description_line'];
+            $query_string = "";
+            foreach (['term' => $term, 'instrucMode' => $instructionMode,
+                         'session' => $session,
+                         'days' => $days,
+                         'nbr' =>
+                             $c['course_subj_letter'] . "-" . $c['course_catalog_nbr'],
+                         'dept' => $c['subject_department_short_desc']] as $k => $v) {
+
+                if (isset($v) & $v != "") {
+                    if ($query_string != "")
+                        $query_string .= "&";
+
+                    if (!is_array($v))
+                        $query_string .= "$k=$v";
+                    else {
+                        $str = "";
+                        foreach ($v as $item) {
+                            if ($str != "")
+                                $str .= "&";
+                            $str .= "$k" . "[]=" . $item;
+                        }
+                        $query_string .= $str;
+                    }
+                }
+
+            }
+            $link = $_ENV['HOME_PATH'] . "/register/schedule-classes/course.html";
+            if ($query_string != "")
+                $link .= "?" . $query_string;
+
+            $courses[] = ['description' => $x,
+                'link' => $link];
+        }
+
+        return $courses;
+
     }
 
     /**
@@ -477,68 +516,19 @@ class CourseController extends BaseCourseController
         else
             $total = 0;
 
-        if($total=="")$total = 0;
+        if ($total == "") $total = 0;
 
         $result = collect($result)->slice($start_index, $this->perPage);
-        $courses = $this->buildResults($term, $instructionMode, $session, $days, $result);
+
+
+        $courses = $this->buildResults($term,
+            $instructionMode, $session, $days, $result);
 
 
         return ['total' => $total, 'view' =>
             $courses == "" ? "" : view('coursebrowser.listing')
                 ->with("courses", $courses)->render()];
     }
-
-    /**
-     * Build results for the listing page
-     * @param $instructionMode
-     * @param $session
-     * @param $days
-     * @param $result
-     */
-    protected function buildResults($term, $instructionMode, $session, $days, $result)
-    {
-
-        $courses = "";
-        foreach ($result as $c) {
-            $x = $c['description_line'];
-            $query_string = "";
-            foreach (['term' => $term, 'instrucMode' => $instructionMode,
-                         'session' => $session,
-                         'days' => $days,
-                         'nbr' =>
-                $c['course_subj_letter'] . "-" . $c['course_catalog_nbr'],
-                         'dept' => $c['subject_department_short_desc']] as $k => $v) {
-
-                if (isset($v) & $v != "") {
-                    if ($query_string != "")
-                        $query_string .= "&";
-
-                    if(!is_array($v))
-                        $query_string .= "$k=$v";
-                    else{
-                        $str = "";
-                        foreach($v as $item){
-                            if($str!="")
-                                $str.="&";
-                            $str.="$k"."[]=".$item;
-                        }
-                        $query_string.=$str;
-                    }
-                }
-
-            }
-            $link = $_ENV['HOME_PATH'] . "/register/schedule-classes/course.html";
-            if ($query_string != "")
-                $link .= "?" . $query_string;
-
-            $courses[] = ['description' => $x,
-                'link' => $link];
-        }
-
-        return $courses;
-
-    }
-
 
     /**
      * Course - return a single course information
@@ -551,12 +541,12 @@ class CourseController extends BaseCourseController
         $dept = $request->get("dept");
         $nbr = $request->get("nbr");
         $session = $request->get("session");
-        $instructionMode= $request->get("instrucMode");
+        $instructionMode = $request->get("instrucMode");
         $days = $request->get("days");
-        $courseltr="";
-        $catalogNbr="";
-        if(isset($nbr)){
-            $string = explode("-",$nbr);
+        $courseltr = "";
+        $catalogNbr = "";
+        if (isset($nbr)) {
+            $string = explode("-", $nbr);
             $courseltr = $string[0];
             $catalogNbr = $string[1];
         }
@@ -605,12 +595,13 @@ class CourseController extends BaseCourseController
 
         // get course
         $json_file = storage_path("courses/current/$term/$dept.json");
-        $courses = json_decode(file_get_contents($json_file),true);
+        $courses = json_decode(file_get_contents($json_file), true);
 
-        $course = collect($courses['data'])->filter(function($c)use($catalogNbr,$courseltr){
+        $course = collect($courses['data'])->filter(function ($c) use ($catalogNbr, $courseltr) {
 
-            if((isset($courseltr) && $c['course_subj_letter']==$courseltr) &&
-                (isset($catalogNbr) && $c['course_catalog_nbr']==$catalogNbr))
+            if ((isset($courseltr) && $c['course_subj_letter'] == $courseltr) &&
+                (isset($catalogNbr) && $c['course_catalog_nbr'] == $catalogNbr)
+            )
                 return true;
 
             return false;
@@ -619,65 +610,77 @@ class CourseController extends BaseCourseController
         /** return course if no class attributes are selected */
         /** filter classes in the course */
 
-        $course = collect($course)->map(function($set)use($instructionMode,$days,$session){
-            $course['description_line']=$set['description_line'];
-            $course['course_subj_letter']=$set['course_subj_letter'];
-            $course['subject_department_short_desc']=$set['subject_department_short_desc'];
-            $course['subject_department_long_desc']=$set['subject_department_long_desc'];
-            $course['component_short_desc']=$set['component_short_desc'];
-            $course['component_long_desc']=$set['component_long_desc'];
-            $course['credit_hrs']=$set['credit_hrs'];
-            $course['course_attributes']=$set['course_attributes'];
-            $course['course_catalog_nbr']=$set['course_catalog_nbr'];
-            $course['associated_classes']=
+        $course = collect($course)->map(function ($set) use ($instructionMode, $days, $session) {
+            $course['description_line'] = $set['description_line'];
+            $course['course_subj_letter'] = $set['course_subj_letter'];
+            $course['subject_department_short_desc'] = $set['subject_department_short_desc'];
+            $course['subject_department_long_desc'] = $set['subject_department_long_desc'];
+            $course['component_short_desc'] = $set['component_short_desc'];
+            $course['component_long_desc'] = $set['component_long_desc'];
+            $course['course_attributes'] = $set['course_attributes'];
+            $course['course_catalog_nbr'] = $set['course_catalog_nbr'];
+            $course['associated_classes'] =
                 collect($set['associated_classes'])
-                    ->filter(function($class)use($days,$instructionMode,$session){
+                    ->map(function ($associated_classes)
+                    use ($days, $instructionMode, $session) {
+                        return ['min_credit_hrs' =>
+                            $associated_classes['min_credit_hrs'],
+                            'max_credit_hrs' => $associated_classes['max_credit_hrs'],
+                            'classes' => collect($associated_classes['classes'])
+                                ->filter(function ($class) use ($days, $instructionMode, $session) {
 
-                $inst_mode_check = true;
-                $sesion_check = true;
-                $days_check = true;
+                                    $inst_mode_check = true;
+                                    $sesion_check = true;
+                                    $days_check = true;
 
-                $c = current($class);
+                                    /* instruction mode */
+                                    if (isset($instructionMode)) {
+                                        if ($class['instruction_mode']['code'] == $instructionMode)
+                                            $inst_mode_check = true;
+                                        else
+                                            $inst_mode_check = false;
 
-                /* instruction mode */
-                if (isset($instructionMode))
-                {
-                    if($c['instruction_mode']['code'] == $instructionMode)
-                        $inst_mode_check=true;
-                    else
-                        $inst_mode_check=false;
+                                    }
 
-                }
+                                    /** session check */
+                                    if (isset($session)) {
+                                        if ($class['class_session']['session_code'] == $session)
+                                            $sesion_check = true;
+                                        else
+                                            $sesion_check = false;
 
-                /** session check */
-                if (isset($session))
-                {
-                    if($c['class_session']['session_code'] == $session)
-                        $sesion_check=true;
-                    else
-                        $sesion_check=false;
+                                    }
 
-                }
+                                    if (isset($days) && $days != "") {
+                                        $patterns = collect($class['details'])
+                                            ->pluck('meeting_pattern')->toArray();
 
-              //  if(isset($days) && collect($c['details'])->pluck('meeting_pattern')->toArray())
-                //    $days_check=true;
-               // else
-                 //   $days_check=false;
+                                        foreach ($patterns as $p) {
+                                            foreach ($days as $d) {
+                                                if (stripos($p, $d) !== false) {
+                                                    $days_check = true;
+                                                    break;
+                                                } else
+                                                    $days_check = false;
+                                            }
+                                        }
+                                    }
 
+                                    return $inst_mode_check && $sesion_check && $days_check;
 
-                return $inst_mode_check && $sesion_check && $days_check;
-
-            })->toArray();
+                                })->toArray()
+                        ];
+                    })->toArray();
 
 
             return $course;
         });
 
 
-        $view =(view('coursebrowser.course')
-            ->with('course',current($course->toArray()))->render());
+        $view = (view('coursebrowser.course')
+            ->with('course', current($course->toArray()))->render());
 
-        $html.=$this->builder->resultsWrapper($view);
+        $html .= $this->builder->resultsWrapper($view);
 
         echo $html;
 

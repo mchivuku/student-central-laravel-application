@@ -1,15 +1,6 @@
 <?php
-uasort($class, function($c1,$c2){
-   if(strpos("*****",$c1['class_number'])!==false)
-       return -1;
 
-   if(strpos("*****",$c2['class_number'])!==false)
-       return 1;
 
-    if($c1['class_number']==$c2['class_number'])return 0;
-
-    return $c1['class_number']<$c2['class_number']?-1:1;
-});
 ?>
 @foreach($class as $c)
 
@@ -17,52 +8,73 @@ uasort($class, function($c1,$c2){
         {!! Html::renderNotes($c['class_notes_before']) !!}
     @endif
 
-    @if(isset($c['component_short_description']) &&
-        $c['component_short_description']!=$course_component)
-        <p>Component:&nbsp;{{$c['component_long_description']}}</p>
-    @endif
-
     <dl class="inline">
-        @if($c['topic']!="")
-            <dt>Topic: </dt>
+        @if(isset($c['component_short_description']) &&
+        $c['component_short_description']!=$course_component)
+            <dt>Class type:</dt>
+            <dd>{{$c['component_long_description']}}</dd>
+        @endif
+        @if(isset($c['topic']) && $c['topic']!="")
+            <dt>Topic:</dt>
             <dd>{{$c['topic']}}</dd>
         @endif
 
-            <dt>Class number: </dt>
-            <dd>{{$c["class_number"]}}
-                @if($c["class_closed"]!="")
-                    {{$c["class_closed"]}}
-                @endif
-            </dd>
-            @if($c["consent_type_requirement"]!="")
-                <dt>Class consent: </dt>
-                <dd>{{$c["consent_type_requirement"]}}</dd>
+        <dt>Class number:</dt>
+        <dd>{{$c["class_number"]}}
+            @if($c["class_closed"]!="")
+                {{$c["class_closed"]}}
             @endif
-            <dt>Seats: </dt>
-            <dd>{{$c["enrollment_capacity"]}}</dd>
-            <dt>Available: </dt>
-            <dd>{{$c["total_available"]}}</dd>
-            <dt>Wait: </dt>
-            <dd>{{$c["waitlisted_total_number"]}}</dd>
+        </dd>
+        @if($c["consent_type_requirement"]!="")
+            <dt>Class consent:</dt>
+            <dd>{{$c["consent_type_requirement"]}}</dd>
+        @endif
+        <dt>Instruction mode:</dt>
+        <dd>{{$c["instruction_mode"]["long_description"]}}</dd>
+        <dt>Session:</dt>
+        <dd>{{$c["class_session"]["session_description"]}}</dd>
+
+        <dt>Total seats:</dt>
+        <dd>{{$c["enrollment_capacity"]}}</dd>
+        <dt>Available seats:</dt>
+        <dd>{{$c["total_available"]}}</dd>
+        <dt>Waitlisted seats:</dt>
+        <dd>{{$c["waitlisted_total_number"]}}</dd>
 
     </dl>
-    <dl>
-            @foreach($c['details'] as $detail)
-            <dt>Class information: </dt>
-                <dd> {{isset($detail["instructor"])&&$detail["instructor"]!=""?
-                     $detail["instructor"]:"&nbsp;"}}, {{$detail["meeting_pattern"]}},
-                    {{$detail["start_time"]}}&mdash;{{$detail["end_time"]}}
-                    ,{{$detail["facility_bldg_code"]}}&nbsp;{{$detail["facility_bldg_rm_number"]}}
-                </dd>
-            @endforeach
 
-    </dl>
+    <table>
+        <thead>
+        <tr>
+            <th scope="col">Instructor</th>
+            <th scope="col">Day</th>
+            <th scope="col">Time</th>
+            <th scope="col">Facility</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach($c['details'] as $detail)
+            <tr>
+
+                <td scope="row"> {{isset($detail["instructor"])&&$detail["instructor"]!=""?
+                     $detail["instructor"]:"&mdash;"}}</td>
+                <td scope="row">{{$detail["meeting_pattern"]}}</td>
+                <td scope="row">{{$detail["start_time"]}}&ndash;{{$detail["end_time"]}}</td>
+                <td scope="row">{{$detail["facility_bldg_code"]}}&nbsp;{{$detail["facility_bldg_rm_number"]}}</td>
+            </tr>
+        @endforeach
+
+
+        </tbody>
+    </table>
+
+
     {!! Html::renderNotes($c['class_notes_after']) !!}
 
-    @if(isset($class['long_description']))
-        <p><strong>Class description:</strong></p>
-        {{$class['long_description']}}
+    @if(isset($c['long_description']) && $c['long_description']!="")
+        <p><strong>Class description: </strong></p>
+        {{$c['long_description']}}
     @endif
-<hr/>
+    <hr/>
 @endforeach
 

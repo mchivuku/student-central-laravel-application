@@ -19,7 +19,11 @@ class BaseCourseController extends Controller
         '0GENEDMM', '0GENEDAH', '0GENEDSH', '0GENEDNM', '0GENEDWL', '0GENEDWC'];
 
     protected $days = ["M"=>"Mon",
-        "T"=>"Tue","W"=>"Wed","TR"=>"Thurs","F"=>"Fri"];
+        "T"=>"Tue","W"=>"Wed","R"=>"Thurs",
+        "F"=>"Fri"];
+
+    protected $friday = ["F","R"];
+
 
     //('P','OA','OI','HY')
     protected $instructionModes = ['P', 'OA', 'OI', 'HY'];
@@ -34,7 +38,8 @@ class BaseCourseController extends Controller
         "700-above" => "700-above"];
 
     protected $creditHrs = ["" => "Credit hrs",
-        1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 6, 7 => 7];
+        1 => 1, 2 => 2, 3 => 3,
+        4 => 4, 5 => 5, 6 => 6, 7 => 7];
 
     public function __construct()
     {
@@ -63,8 +68,6 @@ class BaseCourseController extends Controller
                 ->distinct()->pluck("crs_subj_desc","crs_subj_dept_cd")
                 ->toArray();
 
-
-
         $departments = array_merge(["" => "Departments"], $departments);
         return $departments;
 
@@ -85,15 +88,13 @@ class BaseCourseController extends Controller
 
     protected function getSessions($term)
     {
-        //select distinct cls_sesn_cd,cls_sesn_desc from class
-        //       where acad_term_cd=4162
 
         $sessions = Models\ClassTable::where('acad_term_cd', '=', $term)
             ->get()->lists("cls_sesn_desc",
                 "cls_sesn_cd")
             ->toArray();
 
-        $sessions = array_merge(["" => "Class session"], $sessions);
+        $sessions =  ["" => "Class session"] + $sessions;
         return $sessions;
     }
 
@@ -108,5 +109,17 @@ class BaseCourseController extends Controller
         $instructionModes = array_merge(["" => "Instruction modes"], $instructionModes);
 
         return $instructionModes;
+    }
+
+    protected function getTerms(){
+        $terms = Models\TermDescription::whereIn('term', config('app.acadTerms'))
+            ->get()->lists(
+                "description","term")->toArray();
+
+        $x[""]="Term";
+        foreach($terms as $k=>$v){
+            $x[$k]=$v;
+        }
+        return $terms;
     }
 }

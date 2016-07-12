@@ -59,32 +59,36 @@ class ImportIntoCourseBrowserDB extends Command
 
         echo 'completed ImportClassDescriptions.'.PHP_EOL;
 
-        // 4. Import into class description table
+        //5. Import into Class Notes
+        $job = new Job\ImportClassNotes();
+        $job->execute();
+
+        // 6. Import into class description table
         $job = new Job\ImportCombinedSectionInfo();
         $job->execute();
 
         echo 'completed ImportCombinedSectionInfo.'.PHP_EOL;
 
-        //5. Import into CrossListings
+        //7. Import into CrossListings
         $job = new Job\ImportCrossListings();
         $job->execute();
 
-        //6. Import into ERG
+        //8. Import into ERG
         $job = new Job\ImportERG();
         $job->execute();
         echo 'completed ImportERG.'.PHP_EOL;
 
-        //7. Import into ERG2
+        //9. Import into ERG2
         $job = new Job\ImportERG2();
         $job->execute();
         echo 'completed ImportERG2.'.PHP_EOL;
 
-        // Import Nonstandard session dates
+        //10. Import Nonstandard session dates
         $job = new Job\ImportNonStandardSessionDates();
         $job->execute();
         echo 'completed ImportNonStandardSessionDates.'.PHP_EOL;
 
-        //Import JSON Files
+        //11. Build JSON Files
         $job = new Job\GenerateJSONFiles();
         $job->execute();
         echo 'completed GenerateJSONFiles.'.PHP_EOL;

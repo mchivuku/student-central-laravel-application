@@ -40,19 +40,12 @@ class CrossListedCoursesController extends BaseCourseController
         $html .= $this->builder->formWrapperOpen()->addClass('halves');
 
         /** @var terms */
-        $terms = Models\TermDescription::whereIn('term', config('app.acadTerms'))
-            ->get()->lists(
-                "description","term")->toArray();
-
-        $x[""]="Term";
-        foreach($terms as $k=>$v){
-            $x[$k]=$v;
-        }
+       $terms = $this->getTerms();
 
         $departments = $this->getDepartments();
 
         $html .= $this->builder->select("Term", "acadTerm",
-            $x,
+            $this->getTerms(),
             array('class' => "acadTerm"), isset($acadTerm)?$acadTerm:"");
 
         $html .= $this->builder->select("Department", "dept",

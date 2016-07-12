@@ -36,7 +36,8 @@ class ClassTransformer extends TransformerAbstract
             return [
                 'component_short_description' => $class['cls_cmpnt_cd'],
                 'component_long_description' => $class['cls_cmpnt_desc'],
-                'consent_type_requirement' => isset($class['cls_cnst_type_req']) ? $class['cls_cnst_type_req'] : "",
+                'consent_type_requirement' =>
+                    isset($class['cls_cnst_type_req']) ? $class['cls_cnst_type_req'] : "",
                 'class_number' => $class['cls_nbr'],
                 'class_closed' => $class['clsd'],
                 'details' => collect($class['details'])->map(function ($detail) {
@@ -51,16 +52,17 @@ class ClassTransformer extends TransformerAbstract
                         return ['attribute_code' => $attribute['crs_attrib_val_cd'],
                             'attribute_desc' => $attribute['crs_attrib_val_desc']];
 
-                    }),
+                    })->toArray()
+                ,
 
                 "topic"=>isset($class["crs_tpc_desc"])?$class["crs_tpc_desc"]:"",
                 'class_notes_before' => collect($class['class_notes_b'])->unique()->map(function ($notes) {
                     return $this->base_transformer->parseTextForHttpLinks($notes);
-                }),
+                })->toArray(),
 
                 'class_notes_after' => collect($class['class_notes_a'])->unique()->map(function ($notes) {
                     return $this->base_transformer->parseTextForHttpLinks($notes);
-                }),
+                })->toArray(),
 
             'class_session'=>['session_code'=>$class['cls_sesn_cd'],'derived_session'=>$class['cls_drvd_sesn_cd'],
                 'session_description'=>$class['cls_sesn_desc']],

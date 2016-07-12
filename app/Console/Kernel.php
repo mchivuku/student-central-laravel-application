@@ -34,7 +34,8 @@ class Kernel extends ConsoleKernel
 
         Commands\ImportNonStandardSessionDates::class,
         Commands\SendJobNotification::class,
-        Commands\ImportIntoCourseBrowserDB::class
+        Commands\ImportIntoCourseBrowserDB::class,
+        Commands\ImportTerms::class
     ];
 
     /**
@@ -45,13 +46,16 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('import:coursedb')->before(function () {
-                Artisan::call('job:BackupDB');
-                echo 'Completed backup';
+           /* $schedule->command('import:coursedb')->before(function () {
+                 Artisan::call('job:BackupDB');
+                 echo 'Completed backup';
             })->after(
                 function() {
                     Artisan::call('email.notify');
-                })->dailyAt("06:10");
+            })->dailyAt("06:05");*/
+
+      $schedule->command('job:GenerateJSONFiles')->dailyAt('08:54');
+
 
     }
 }

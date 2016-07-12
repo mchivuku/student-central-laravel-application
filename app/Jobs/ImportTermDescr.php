@@ -12,7 +12,8 @@ class ImportTermDescr extends Job
     /**
      * Change all terms need to be retrieved. Query retrieves terms after Summer 2015
      */
-    const GetTermDescrQuery = "select STRM, DESCR from DSS_RDS.SR_TERM_CD_V where STRM>4155 ";
+    const GetTermDescrQuery = "select STRM, DESCR from DSS_RDS.SR_TERM_CD_V
+    where STRM>4155 ";
 
     protected $destinationTable = 'term_descr';
 
@@ -33,7 +34,7 @@ class ImportTermDescr extends Job
         // truncate
         $this->dbextensionsObj->truncate($this->destinationTable);
 
-        $data = collect(\DB::connection("DSSProd")->select(self::GetTermDescrQuery));
+        $data = collect(\DB::connection("oracle")->select(self::GetTermDescrQuery));
 
 
         $this->dbextensionsObj->insert($this->destinationTable, $data,

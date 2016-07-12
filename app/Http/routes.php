@@ -16,9 +16,17 @@ Route::get("/json",function(){
     $job = new \StudentCentralApp\Jobs\GenerateJSONFiles();
     $job->execute();
 });
+
+
+//Route::group(['prefix'=>'courses'],function() {
+  //  Route::get('/{term}', 'CourseDBController@index');
+    // Route::get('/search/{term}', 'CourseController@search');
+//});
+
+
 Route::group(['prefix'=>'courses'],function() {
     Route::get('/{term}', 'CourseController@index');
-     Route::get('/search/{term}', 'CourseController@search');
+    Route::get('/search/{term}', 'CourseController@search');
 });
 
 Route::get('/course', 'CourseController@course');
@@ -32,6 +40,10 @@ Route::group(['prefix'=>'crosslisted'],function() {
 // API routes
 Route::group(['prefix'=>'api'],function(){
 
+    Route::get('/terms', 'TermsController@index');
+    Route::get('/terms/paginate', 'TermsController@paginate');
+
+
     // Grade distribution api
     Route::group(['prefix'=>'grades'],function(){
 
@@ -40,6 +52,8 @@ Route::group(['prefix'=>'api'],function(){
         Route::get('/departments', 'GradeDistributionApiController@departments');
         Route::get('/reportTypes', 'GradeDistributionApiController@reportTypes');
         Route::get('/schools', 'GradeDistributionApiController@schools');
+
+
 
     });
 

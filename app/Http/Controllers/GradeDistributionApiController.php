@@ -18,25 +18,37 @@ class GradeDistributionApiController extends BaseApiController
 {
 
     protected $aggregateRepts = [
-         1 => ['text' => 'Distribution by Course Group, Academic Org,
+
+
+        1 =>['text'=>"Distribution by Course Academic Group, Academic Org, and Class Number",
+            "where"=>"REC_TYPE='CLS'",'orderBy'=>'ACAD_TERM_CD desc,
+             ACAD_GRP_CD, ACAD_ORG_CD, CRS_SUBJ_CD,
+             CRS_CATLG_NBR, CLS_NBR, CLS_INSTR_NM'],
+
+        2=> ['text' => 'Distribution by Course Group, Academic Org,
                 and Course', 'where' => "REC_TYPE='CRSE'",
             'orderBy' => "ACAD_TERM_CD desc, ACAD_GRP_CD,
             ACAD_ORG_CD, CRS_SUBJ_CD, CRS_CATLG_NBR"],
 
-        2 => ['text' => 'Distribution by Course Group and Academic Org',
+        3 => ['text' => 'Distribution by Course Group and Academic Org',
             'where' => "REC_TYPE='ORG'",
             'orderBy' => "ACAD_TERM_CD desc, ACAD_GRP_CD, ACAD_ORG_CD"],
-        3 => ['text' => 'Distribution by Course Group',
+
+        4 => ['text' => 'Distribution by Course Academic Group',
             'where' => "REC_TYPE='GRP'",
             'orderBy' => "ACAD_TERM_CD desc, ACAD_GRP_CD, ACAD_ORG_CD"],
 
-        4 => ['text' => 'Distribution by Institution and Session',
+        5 => ['text' => 'Distribution by Institution and Session',
             'where' => "REC_TYPE='SESN'",
-            'orderBy' => "ACAD_TERM_CD desc, CLS_SESN_CD"],
+            'orderBy' => "ACAD_TERM_CD desc, CLS_SESN_CD"
 
-        5 => ["text" => "Distribution by Institution",
+           ],
+
+        6 => ["text" => "Distribution by Institution",
             'where' => "REC_TYPE='INST'",
-            'orderBy' => "ACAD_TERM_CD desc"]
+            'orderBy' => "ACAD_TERM_CD desc"
+
+        ]
     ];
 
     public function __construct(Manager $fractal)
@@ -86,13 +98,11 @@ class GradeDistributionApiController extends BaseApiController
         //dept - org, school - grp, course - crse,
 
         // default is cls reporting
-        if (!isset($reportType))
-            $query = $query->where("REC_TYPE", "=", 'CLS')
-                ->whereRaw("ACAD_TERM_CD IS NOT NULL");
-        else
-            $query = $query->whereRaw($this->aggregateRepts[$reportType]['where'])
-                ->whereRaw("ACAD_TERM_CD IS NOT NULL");
+        if (!isset($reportType) || $reportType=="0")
+            $reportType=1;
 
+        $query = $query->whereRaw($this->aggregateRepts[$reportType]['where'])
+            ->whereRaw("ACAD_TERM_CD IS NOT NULL");
 
         /** If acad terms is selected */
         if (isset($acadTerms)) {
@@ -139,7 +149,8 @@ class GradeDistributionApiController extends BaseApiController
             $query = $query->orderByRaw("ACAD_TERM_CD desc, ACAD_ORG_CD, CRS_SUBJ_CD,
         CRS_CATLG_NBR, CLS_NBR, CLS_INSTR_NM");
         } else {
-            $query = $query->orderByRaw($this->aggregateRepts[$reportType]['orderBy']);
+            $query = $query
+                ->orderByRaw($this->aggregateRepts[$reportType]['orderBy']);
         }
 
         $result = $query->paginate($this->perPage);
@@ -201,7 +212,9 @@ class GradeDistributionApiController extends BaseApiController
     {
 
         $data = ['data' => collect($this->aggregateRepts)
-                ->pluck('text')];
+                ->map(function($item){
+                    return $item['text'];
+                })];
         return json_encode($data);
     }
 

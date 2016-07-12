@@ -31,6 +31,7 @@ class NonStandardSessionApiController extends BaseApiController
         $school = Input::get('school');
         $dept = Input::get('dept');
 
+
         $results = Models\NonStandardSessionDates::acadTerm($acad_term)
             ->school($school)->dept($dept)
             ->orderByRaw("crs_subj_cd, crs_catlg_nbr, cls_nbr")

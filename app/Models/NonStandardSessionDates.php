@@ -41,7 +41,7 @@ class NonStandardSessionDates extends BaseModel
 
     public function scopeDept($query,$dept)
     {
-        if(isset($school)){
+        if(isset($dept)){
             return $query->where('crs_subj_dept_cd', 'like', $dept);
         }else{
             return $query;
