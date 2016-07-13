@@ -111,8 +111,6 @@ class CourseController extends BaseCourseController
         $html .= $this->builder->button('Go')->attribute('type', 'submit');
         $html .= $this->builder->close();
 
-        $html .= view("emptyresults")->render();
-
         $html.=$this->search($term,$request);
 
         return $html;
@@ -129,10 +127,12 @@ class CourseController extends BaseCourseController
     {
 
         $input = $request->all();
-        $html = "";
+
         if (isset($input) && count($input) == 0) {
             return view("emptyresults")->render();
         }
+
+        $html="";
         $dept = $request->input('dept');
 
 

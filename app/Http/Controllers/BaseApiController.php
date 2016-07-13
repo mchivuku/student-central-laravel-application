@@ -17,8 +17,6 @@ use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 use League\Fractal\Resource\Collection;
 use League\Fractal\Resource\Item as Item;
 
-
-
 class BaseApiController extends BaseController
 {
 
