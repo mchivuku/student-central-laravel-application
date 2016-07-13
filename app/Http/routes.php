@@ -23,10 +23,9 @@ Route::get("/json",function(){
     // Route::get('/search/{term}', 'CourseController@search');
 //});
 
-
 Route::group(['prefix'=>'courses'],function() {
     Route::get('/{term}', 'CourseController@index');
-    Route::get('/search/{term}', 'CourseController@search');
+    Route::get('/{term}/search', 'CourseController@search');
 });
 
 Route::get('/course', 'CourseController@course');

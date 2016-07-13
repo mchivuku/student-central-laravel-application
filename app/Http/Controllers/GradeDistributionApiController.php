@@ -122,16 +122,16 @@ class GradeDistributionApiController extends BaseApiController
 
         /** if course subject is selected */
         if (isset($course_subject) && $course_subject != "")
-            $query = $query->where("CRS_SUBJ_CD", '=',
+            $query = $query->where("CRS_SUBJ_CD", 'like',
                 $course_subject);
 
         /** if catalog number is selected */
         if (isset($catalog_number) && $catalog_number != "")
-            $query = $query->where("CRS_CATLG_NBR", '=', $catalog_number);
+            $query = $query->where("CRS_CATLG_NBR", 'like', $catalog_number);
 
         /** $class_number */
-        if (isset($class_number) && $class_number != 0)
-            $query = $query->where('cls_nbr', '=', $class_number);
+        if (isset($class_number))
+            $query = $query->where('cls_nbr', 'like', $class_number);
 
         /** instructor name is set */
         if (isset($instructor) && $instructor != "")

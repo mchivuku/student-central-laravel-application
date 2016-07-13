@@ -40,12 +40,12 @@ class CrossListedCoursesController extends BaseCourseController
         $html .= $this->builder->formWrapperOpen()->addClass('halves');
 
         /** @var terms */
-       $terms = $this->getTerms();
+       $terms = self::$default_element + ["All Terms" => "All Terms"] + $this->getTerms();
 
         $departments = $this->getDepartments();
 
         $html .= $this->builder->select("Term", "acadTerm",
-            $this->getTerms(),
+            $terms,
             array('class' => "acadTerm"), isset($acadTerm)?$acadTerm:"");
 
         $html .= $this->builder->select("Department", "dept",
@@ -53,6 +53,13 @@ class CrossListedCoursesController extends BaseCourseController
             array('class' => "dept"),  isset($dept)?$dept:"");
 
         $html .= $this->builder->formWrapperClose();
+
+        $input = $request->all();
+
+        if (isset($input) && count($input) == 0) {
+            $html .= view("emptyresults")->render();
+            return $html;
+        }
 
         $result = $this->search($request,$departments);
 
@@ -79,7 +86,6 @@ class CrossListedCoursesController extends BaseCourseController
      */
     public function search(Request $request,$departments)
     {
-
 
         $dept = $request->input('dept');
         $acadTerm = $request->input('acadTerm');
