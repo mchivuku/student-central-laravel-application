@@ -277,6 +277,45 @@ class ContactFormApiController extends BaseApiController
 
     }
 
+    /**
+     * Function to test if uploaded file is correct.
+     * @param $uploadId
+     */
+    public function testUploadedBLOB($uploadId){
+        // $query = 'SELECT UPLOAD_FILE FROM
+        //STDNTCEN.SR_CONTACT_UPLOADS_T WHERE UPLOAD_ID = :UPLOAD_ID' ;
 
+        $upload = \DB::connection("contactformdb")
+            ->table('SR_CONTACT_UPLOADS_T')
+            ->select('upload_file','upload_nm')
+            ->where('upload_id','=',$uploadId)->first();
+
+        $report =($upload->upload_nm);
+        if ((stristr($report,'.')== "xls") and (!stristr($report,'.')== "xlsx")) {
+            header("Content-type: application/vnd.ms-excel;");
+        } elseif (stristr($report,'.')== "xlsx") {
+            header("Content-type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;");
+        } elseif ((stristr($report,'.')== "doc") and (!stristr($report,'.')== "docx")) {
+            header("Content-type: application/msword;");
+        } elseif (stristr($report,'.')== "docx") {
+            header("Content-type: application/vnd.openxmlformats-officedocument.wordprocessingml.document;");
+        } elseif (stristr($report,'.')== "pdf") {
+            header("Content-type: application/pdf;");
+        } elseif (stristr($report,'.')== "txt") {
+            header("Content-type: text/plain");
+        } elseif (stristr($report,'.')== "rtf") {
+            header("Content-type: application/rtf;");
+        } elseif (stristr($report,'.')== "csv") {
+            header("Content-type: text/csv;");
+        } elseif (stristr($report,'.')== "jpg" or stristr($report,'.')== "jpeg") {
+            header("Content-type: image/jpeg;");
+        } else {
+            //header("Content-type: text/plain;");
+            header("Content-type: application/octet-stream;");
+        }
+        header("Content-Disposition: attachment; filename=$report");
+
+        echo $upload->upload_file;
+    }
 
 }

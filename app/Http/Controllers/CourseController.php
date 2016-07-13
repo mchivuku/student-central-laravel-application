@@ -8,7 +8,9 @@
 namespace StudentCentralApp\Http\Controllers;
 
 use Illuminate\Http\Request;
+use League\Flysystem\Filesystem;
 use StudentCentralApp\Models as Models;
+use GrahamCampbell\Flysystem\Facades\Flysystem;
 
 
 class CourseController extends BaseCourseController
@@ -19,11 +21,12 @@ class CourseController extends BaseCourseController
         4165 => "/register/schedule-classes/summer-2016.html"
     ];
 
+
     public function __construct()
     {
         parent::__construct();
         $this->perPage = 20;
-    }
+     }
 
     /**
      * Call function to build the dropdown for filtering data.
@@ -38,6 +41,7 @@ class CourseController extends BaseCourseController
         $creditHr = $request->input("creditHr");
         $session = $request->input("session");
         $days = $request->input("days");
+        $caseReq = $request->input("CASEReq");
 
         /** @var Build Markup $html */
         $html = $this->builder->open()
@@ -46,7 +50,7 @@ class CourseController extends BaseCourseController
             ->addClass('filter')
             ->attribute('data-api', $_ENV['HOME_PATH'] . '/_php/laravel-app/public/courses/' . $term);
 
-        $html .= $this->builder->formWrapperOpen()->addClass('thirds');
+        $html .= $this->builder->formWrapperOpen()->addClass('halves');
 
         // build genEd
         $requirements = Models\ClassAttribute::
@@ -60,6 +64,7 @@ class CourseController extends BaseCourseController
         /** @var Departments $departments */
         $departments = $this->getDepartments($term);
         $sessions = $this->getSessions($term);
+        $case_requirements = $this->getCASERequirements();
 
 
         /** @var  $instructionModes */
@@ -69,6 +74,10 @@ class CourseController extends BaseCourseController
         $html .= $this->builder->select("GenEd requirement", "genEdReq",
             $requirements,
             array('class' => "genEdReq"), isset($genEndAttr) ? $genEndAttr : "");
+
+        $html .= $this->builder->select("CASE requirement", "CASEReq",
+            $case_requirements,
+            array('class' => "CASEReq"), isset($caseReq) ? $caseReq : "");
 
         $html .= $this->builder->select("Departments", "dept",
             $departments,
@@ -156,6 +165,7 @@ class CourseController extends BaseCourseController
         $json_file = isset($dept) ? storage_path("courses/current/$term/$dept.json") :
             storage_path("courses/current/$term/$term.json");
 
+
         // If file not found
         if (!file_exists($json_file)) return;
 
@@ -178,6 +188,7 @@ class CourseController extends BaseCourseController
         $creditHr = $request->input("creditHr");
         $session = $request->input("session");
         $days = $request->input("days");
+        $caseReq = $request->input("CASEReq");
 
 
         $page = $request->input("page");
@@ -199,8 +210,8 @@ class CourseController extends BaseCourseController
                 return $this->filterByCreditHrs($course, $creditHr);
             })->filter(function ($course) use ($courseNbr) {
                 return $this->filterByCatalogNbr($course, $courseNbr);
-            })->filter(function ($course) use ($genEndAttr) {
-                return $this->filterByCourseAttributes($course, $genEndAttr);
+            })->filter(function ($course) use ($genEndAttr,$caseReq) {
+                return $this->filterByCourseAttributes($course, $genEndAttr,$caseReq);
             })->filter(function ($course) use ($instructionMode) {
                 return $this->filterByInstructionMode($course, $instructionMode);
             })->filter(function ($course) use ($session) {
@@ -270,8 +281,13 @@ class CourseController extends BaseCourseController
         if (!isset($creditHrs) || $creditHrs == "")
             return true;
 
+
+        if($creditHrs=="7+")
+            return $course['min_credit_hrs']>7;
+
         $min = ($creditHrs == 1) ? 1 : $creditHrs - 1;
         $max = $creditHrs;
+
 
         if ($course['min_credit_hrs'] > $min && $course['max_credit_hrs'] <= $max)
             return true;
@@ -314,10 +330,10 @@ class CourseController extends BaseCourseController
      * @param $genEdcode
      * @return bool
      */
-    function filterByCourseAttributes($course, $genEdcode)
+    function filterByCourseAttributes($course, $genEdcode,$caseReq)
     {
 
-        if (!isset($genEdcode) || $genEdcode == "")
+        if ((!isset($genEdcode) || $genEdcode == "") && ((!isset($caseReq) || $caseReq == "")))
             return true;
 
 
@@ -327,7 +343,8 @@ class CourseController extends BaseCourseController
 
         if (isset($attributes) && count($attributes) > 0) {
 
-            if (collect($attributes)->pluck("attribute_code")->contains($genEdcode))
+            if (collect($attributes)->pluck("attribute_code")->contains($genEdcode) || collect($attributes)->pluck("attribute_code")
+                    ->contains($caseReq))
                 return true;
         }
 
@@ -471,12 +488,13 @@ class CourseController extends BaseCourseController
         $creditHr = $request->input("creditHr");
         $session = $request->input("session");
         $days = $request->input("days");
+        $caseReq = $request->input("CASEReq");
+
 
 
         $page = $request->input("page");
 
         $start_index = $this->get_start_index($page);
-
 
         // Build collection
         $departments = collect(json_decode(file_get_contents($json_file), true));
@@ -485,15 +503,15 @@ class CourseController extends BaseCourseController
         collect($departments["data"])->each(function ($department)
         use (
             $creditHr, $courseNbr, $genEndAttr, &$result, $instructionMode,
-            $session, $days
+            $session, $days,$caseReq
         ) {
             $collection = collect($department["courses"])
                 ->filter(function ($course) use ($creditHr) {
                     return $this->filterByCreditHrs($course, $creditHr);
                 })->filter(function ($course) use ($courseNbr) {
                     return $this->filterByCatalogNbr($course, $courseNbr);
-                })->filter(function ($course) use ($genEndAttr) {
-                    return $this->filterByCourseAttributes($course, $genEndAttr);
+                })->filter(function ($course) use ($genEndAttr,$caseReq) {
+                    return $this->filterByCourseAttributes($course, $genEndAttr,$caseReq);
                 })->filter(function ($course) use ($instructionMode) {
                     return $this->filterByInstructionMode($course, $instructionMode);
                 })->filter(function ($course) use ($session) {
@@ -670,12 +688,28 @@ class CourseController extends BaseCourseController
                })->toArray();
 
         $course = current($course);
-        if(isset($associated_classes)){
-            $course['associated_classes']=$associated_classes;;
+        $sum="";
+        if(isset($associated_classes)) {
+            $course['associated_classes'] = $associated_classes;
+            array_walk($associated_classes, function ($set) use (&$sum) {
+               $sum+=array_sum( array_map(function($item){return count($item['classes']);},
+                   $set));
+            });
         }
 
 
-        $view = (view('coursebrowser.course')
+        /** @var seleection wrapper $view */
+        $selectionWrapper = $this->builder->selectionWrapper($sum);
+
+        if (isset($session) && $session != "")
+            $selectionWrapper = $selectionWrapper
+                ->filterItem('Session', $sessions[$session], $session);
+
+
+        $html .= $selectionWrapper;
+
+        $terms = $this->getTerms();
+        $view = (view('coursebrowser.course')->with('term',isset($terms[$term])?$terms[$term]:"")
             ->with('course', ($course))->render());
 
         $html .= $this->builder->resultsWrapper($view);

@@ -53,7 +53,7 @@ Route::group(['prefix'=>'api'],function(){
         Route::get('/reportTypes', 'GradeDistributionApiController@reportTypes');
         Route::get('/schools', 'GradeDistributionApiController@schools');
 
-
+        Route::get('/context', 'GradeContextReportsController@index');
 
     });
 
@@ -75,6 +75,7 @@ Route::group(['prefix'=>'api'],function(){
         Route::post('/', 'ContactFormApiController@submit');
         Route::get("/topics",'ContactFormApiController@getTopics');
 
+        Route::get("/test/{uploadId}",'ContactFormApiController@testUploadedBLOB');
 
     });
 

@@ -16,7 +16,10 @@ class DBConfigHandler
 {
 
     public static $connections = [];
-    public static $oracle_connection_keys=["DSSProd","registrar_grade_distribution_db","registrar_contact_form_db"];
+    public static $oracle_connection_keys=["DSSProd",
+        "registrar_grade_distribution_db",
+        "registrar_grade_context_db",
+        "registrar_contact_form_db"];
 
     /**
      * Function parses DB config file
@@ -64,7 +67,9 @@ class DBConfigHandler
 
         $oracle_conn = ['oracle'=>self::getDSSProdConnection(),
             'gradesdb'=>self::getRegistrarDBConnection("registrar_grade_distribution_db"),
-            "contactformdb"=>self::getRegistrarDBConnection("registrar_contact_form_db")];
+            "contactformdb"=>self::getRegistrarDBConnection("registrar_contact_form_db"),
+            "gradecontextdb"=>self::getRegistrarDBConnection("registrar_grade_context_db")
+        ];
 
         return array_merge($connections,$oracle_conn);
 
@@ -91,6 +96,19 @@ class DBConfigHandler
 
     public static function getRegistrarDBConnection($key){
         $ini = self::parseConfig();
+
+        if($key == "registrar_grade_context_db")
+            return  ["driver"=>"oracle",
+                "host"=>"sasregdp01.uits.indiana.edu",
+                "port"=>1521,"tns"=>"",
+                "username"=>$ini[$key]['user'],
+                "database"=>$ini[$key]['db'],
+                "service_name"=>"oem1prd",
+                "password"=>$ini[$key]['password'],
+                "charset"=>"WE8ISO8859P1","prefix"=>"","quoting"=>""];
+
+
+
         return ["driver"=>"oracle",
             "host"=>"sasregdt01.uits.iupui.edu","port"=>1521,"tns"=>"",
             "username"=>$ini[$key]['user'],

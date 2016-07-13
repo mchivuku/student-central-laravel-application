@@ -18,6 +18,9 @@ class BaseCourseController extends Controller
     protected $genEd = ['0GENEDEC',
         '0GENEDMM', '0GENEDAH', '0GENEDSH', '0GENEDNM', '0GENEDWL', '0GENEDWC'];
 
+    protected $caseRequirements = [
+        'BLIW','COLL030AH','COLL080GC','COLL070DS','COLL050NM','COLL040SH','BLCAPP'
+    ];
     protected $days = ["M"=>"Mon",
         "T"=>"Tue","W"=>"Wed","R"=>"Thurs",
         "F"=>"Fri"];
@@ -26,7 +29,9 @@ class BaseCourseController extends Controller
 
 
     //('P','OA','OI','HY')
-    protected $instructionModes = ['P', 'OA', 'OI', 'HY'];
+    protected $instructionModes = ['P'=>"In Person","OA"=>"100% Online",
+        "OI"=>"76-99% Online Interactive","HY"=>"Hybrid-On Campus & Online"
+        ];
 
     protected $course_numbers = ["" => "Course number",
         "100-199" => "100-199",
@@ -35,11 +40,11 @@ class BaseCourseController extends Controller
         "400-499" => "400-499",
         "500-599" => "500-599",
         "600-699" => "600-699",
-        "700-above" => "700-above"];
+        "700-above" => "700+"];
 
     protected $creditHrs = ["" => "Credit hrs",
         1 => 1, 2 => 2, 3 => 3,
-        4 => 4, 5 => 5, 6 => 6, 7 => 7];
+        4 => 4, 5 => 5, 6 => 6, "7+" => "7+"];
 
     public function __construct()
     {
@@ -99,17 +104,30 @@ class BaseCourseController extends Controller
     }
 
     protected function getInstructionModes(){
-        $instructionModes = Models\ClassTable
-            ::select("cls_instrc_mode_cd", "cls_instrc_mode_desc")
-            ->whereIn('cls_instrc_mode_cd',
-                $this->instructionModes)
-            ->distinct()->get()->lists("cls_instrc_mode_desc",
-                "cls_instrc_mode_cd")
-            ->toArray();
-        $instructionModes = array_merge(["" => "Instruction modes"], $instructionModes);
+
+        $instructionModes = ["" => "Instruction modes"] + $this->instructionModes;
 
         return $instructionModes;
     }
+
+
+    /***
+     * College case requirements
+     * @return array
+     */
+    protected function getCASERequirements(){
+        $case_requirements = Models\ClassAttribute
+            ::select("crs_attrib_val_cd", "crs_attrib_val_desc")
+            ->whereIn('crs_attrib_val_cd',
+                $this->caseRequirements)
+            ->distinct()->get()->lists("crs_attrib_val_desc",
+                "crs_attrib_val_cd")
+            ->toArray();
+        $case_requirements = ["" => "CASE Requirement"] + $case_requirements;
+        return $case_requirements;
+
+    }
+
 
     protected function getTerms(){
         $terms = Models\TermDescription::whereIn('term', config('app.acadTerms'))

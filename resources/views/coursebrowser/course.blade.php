@@ -7,9 +7,14 @@ $crs_component = isset($course["component_short_desc"]) ? $course["component_sho
 ?>
 
         <!-- Loop through each associated class set -->
-
+<h3>{{$term}}</h3>
 @foreach($course['associated_classes'] as $k=>$v)
  @foreach($v as $key=>$classes)
+     @if($classes['min_credit_hrs']==$classes['max_credit_hrs'])
+     <p><strong>{{$course['description_line']." (".$classes['min_credit_hrs']."CR)"}}</strong></p>
+     @else
+         <p><strong>{{$course['description_line']." (".$classes['min_credit_hrs']."&mdash;".$classes['max_credit_hrs']."CR)"}}</strong></p>
+     @endif
     @include('coursebrowser.class',['class'=>$classes['classes'],
 'course_component'=>isset($course['component_short_desc'])
 ?$course['component_short_desc']:""])
