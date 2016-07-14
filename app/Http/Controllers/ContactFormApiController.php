@@ -251,6 +251,9 @@ class ContactFormApiController extends BaseApiController
         \Mail::send('emails.contactform', $data,
             function($message)use($email,$nm,$tid,$descr)
            {
+               // Should be changed - student central on union - array('noreply4@indiana.edu' => 'Student Central on Union')
+              // $message->from('noreply4@indiana.edu', 'Student Central on Union');
+
                $message->to($email, $nm)->subject("[ID:".$tid."] We have received your ".$descr." inquiry ");
          });
 

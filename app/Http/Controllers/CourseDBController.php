@@ -51,17 +51,15 @@ class CourseDBController extends BaseCourseController
         $html .= $this->builder->formWrapperOpen()->addClass('thirds');
 
         // build genEd
-        $requirements = Models\ClassAttribute::
-        select('crs_attrib_val_cd', 'crs_attrib_val_desc')
-            ->whereIn('crs_attrib_val_cd', $this->genEd)
-            ->distinct()->get()->lists("crs_attrib_val_desc", "crs_attrib_val_cd")
-            ->toArray();
-
-        $requirements = array_merge(["" => "GenEd requirement"], $requirements);
-
-        /** @var Departments $departments */
+        $requirements = $this->getGenEdRequirements();
         $departments = $this->getDepartments($term);
         $sessions = $this->getSessions($term);
+        $case_requirements = $this->getCASERequirements();
+        $creditHrs = $this->getCreditHrs();
+        $courseNumbers = $this->getCourseNumbers();
+
+        /** @var  $instructionModes */
+        $instructionModes = $this->getInstructionModes();
 
 
         /** @var  $instructionModes */
@@ -70,6 +68,10 @@ class CourseDBController extends BaseCourseController
         $html .= $this->builder->select("GenEd requirement", "genEdReq",
             $requirements,
             array('class' => "genEdReq"), isset($genEndAttr) ? $genEndAttr : "");
+
+        $html .= $this->builder->select("CASE requirement", "CASEReq",
+            $case_requirements,
+            array('class' => "CASEReq"), isset($caseReq) ? $caseReq : "");
 
         $html .= $this->builder->select("Departments", "dept",
             $departments,
@@ -85,11 +87,12 @@ class CourseDBController extends BaseCourseController
             array('class' => "instrucMode"), isset($instructionMode) ? $instructionMode : "");
 
         $html .= $this->builder->select("Course number", "courseNbr",
-            $this->course_numbers,
-            array('class' => "courseNbr"), isset($courseNbr) ? $courseNbr : "");
+            $courseNumbers,
+            array('class' => "courseNbr"),
+            isset($courseNbr) ? $courseNbr : "");
 
         $html .= $this->builder->select("Credit hour", "creditHr",
-            $this->creditHrs,
+            $creditHrs,
             array('class' => "creditHr"), isset($creditHr) ? $creditHr : "");
 
 
@@ -108,18 +111,24 @@ class CourseDBController extends BaseCourseController
         $html .= $this->builder->button('Go')->attribute('type', 'submit');
         $html .= $this->builder->close();
 
+        if (isset($input) && count($input) == 0) {
+            $html .= view("emptyresults")
+                ->render();
+        }
+
         /** @var Get Results - $search */
         $search = $this->search($term, $request);
 
         /** Selection Wrapper */
-
         $selectionWrapper = $this->builder->selectionWrapper($search['total']);
 
         if (isset($dept) && $dept != "")
-            $selectionWrapper = $selectionWrapper->filterItem('Department', $departments[$dept], $dept);
+            $selectionWrapper = $selectionWrapper->filterItem('Department',
+                $departments[$dept], $dept);
 
         if (isset($genEndAttr) && $genEndAttr != "")
-            $selectionWrapper = $selectionWrapper->filterItem('GenEd requirement', $requirements[$genEndAttr], $genEndAttr);
+            $selectionWrapper = $selectionWrapper->filterItem('GenEd requirement',
+                $requirements[$genEndAttr], $genEndAttr);
 
 
         if (isset($instructionMode) && $instructionMode != "")
@@ -151,53 +160,61 @@ class CourseDBController extends BaseCourseController
      */
     public function search($term, Request $request)
     {
+        $input = $request->all();
 
-        $genEd = $request->input('genEdReq');
-        $dept = $request->input('dept');
+
+        $genEndAttr = $request->input('genEdReq');
         $instructionMode = $request->input('instrucMode');
         $courseNbr = $request->input("courseNbr");
         $creditHr = $request->input("creditHr");
         $session = $request->input("session");
-
         $days = $request->input("days");
 
         $page = $request->input("page");
 
 
-        $query = Models\ClassTable::select(\DB::connection("coursebrowser")->raw('crs_subj_cd,crs_catlg_nbr,crs_subj_dept_cd, crs_desc'));
+        $query = Models\ClassTable::select(\DB::connection("coursebrowser")
+            ->raw('crs_subj_cd,crs_catlg_nbr,crs_subj_dept_cd, crs_desc'));
 
         //set acad term
         $query = $query->where('acad_term_cd', '=', $term);
 
-        if (isset($dept) && $dept != "") $query = $query->where('crs_subj_dept_cd', 'like', $dept);
+        if (isset($dept) && $dept != "") $query = $query
+            ->where('crs_subj_dept_cd', 'like', $dept);
 
         /* Instruction mode */
-        if (isset($instructionMode) && $instructionMode != "")
+        if (isset($instructionMode) && $instructionMode != "" && stripos($instructionMode, "all") === false)
             $query = $query->where('cls_instrc_mode_cd', 'like', $instructionMode);
 
         /** catalog Nbr */
-        if (isset($courseNbr) && $courseNbr != "") {
+        if (isset($courseNbr) && $courseNbr != "" && stripos($courseNbr, "all") === false) {
 
             $values = explode("-", $courseNbr);// 379
             if ($values[1] == "above")
                 $query = $query->where('crs_catlg_nbr', '>=', $values[0]);
             else
-                $query = $query->whereBetween("crs_catlg_nbr",array($values[0],$values[1]));
+                $query = $query->whereBetween("crs_catlg_nbr", array($values[0], $values[1]));
 
         }
 
         /** Session */
-        if (isset($session) && $session != "")
+        if (isset($session) && $session != "" && stripos($session, "all") === false)
             $query = $query->where('cls_sesn_cd', '=', $session);
 
         /** Credit Hrs */
-         if (isset($creditHr) && $creditHr != "") {
-            $min_credit_hr = $creditHr > 1 ? $creditHr - 1 : 1;
-            $max_credit_hr = $creditHr;
+        if (isset($creditHr) && $creditHr != "" && stripos($creditHr, "all") === false) {
+
+            if ($creditHr == 1) {
+                $query = $query->where('cls_assct_min_unt_nbr', '=', 1);
+            } else {
+                $min_credit_hr = $creditHr > 1 ? $creditHr - 1 : 1;
+                $max_credit_hr = $creditHr;
 
 
-            $query = $query->where('cls_assct_min_unt_nbr', '>=', $min_credit_hr)
-                ->where('cls_assct_max_unt_nbr', "<=", $max_credit_hr);
+                $query = $query->where('cls_assct_min_unt_nbr', '>=', $min_credit_hr)
+                    ->where('cls_assct_max_unt_nbr', "<=", $max_credit_hr);
+            }
+
 
         }
 
@@ -211,8 +228,8 @@ class CourseDBController extends BaseCourseController
             $day_query = "";
             foreach ($convert_days as $day) {
 
-                if($day_query!="")
-                    $day_query.=" and ";
+                if ($day_query != "")
+                    $day_query .= " and ";
                 $day_query .= "(cls_drvd_mtg_ptrn_cd like '$day%'
                 or cls_drvd_mtg_ptrn_cd like '%$day%'
                 or  cls_drvd_mtg_ptrn_cd like '$day%' or  cls_drvd_mtg_ptrn_cd like '$day')";
@@ -225,21 +242,43 @@ class CourseDBController extends BaseCourseController
 
 
         /** attributes */
-        if (isset($genEd) && $genEd != "") {
+        if ((isset($genEndAttr) && $genEndAttr != "") || (isset($caseReq) && $caseReq != "")) {
+
             $query = $query->join('class_attribute',
                 'class.cls_key', '=', 'class_attribute.cls_key');
-            $query = $query->where('class_attribute.crs_attrib_val_cd','=',$genEd);
         }
 
+        if (isset($genEndAttr) && $genEndAttr != "") {
+            if (stripos($genEndAttr, "all") !== false) {
+                $query = $query->whereIn('class_attribute.crs_attrib_val_cd',
+                    $this->genEd);
+            } else {
+                echo $genEndAttr;
+                $query = $query->where('class_attribute.crs_attrib_val_cd', 'like',
+                    $genEndAttr);
+            }
 
+        }
 
-        $query = $query->orderBy('crs_subj_cd','asc')->orderBy('crs_catlg_nbr','asc')
+        if (isset($caseReq) && $caseReq != "") {
+            if (stripos($caseReq, "all") !== false) {
+                $query = $query->whereIn('class_attribute.crs_attrib_val_cd',
+                    $this->caseRequirements);
+            } else {
+
+                $query = $query->where('class_attribute.crs_attrib_val_cd', '=', $caseReq);
+            }
+
+        }
+
+        $query = $query->orderBy('crs_subj_cd', 'asc')->orderBy('crs_catlg_nbr', 'asc')
             ->groupBy('crs_subj_dept_cd', 'crs_subj_cd',
-                'crs_catlg_nbr' ,'crs_desc')
+                'crs_catlg_nbr', 'crs_desc')
             ->distinct()->paginate($this->perPage);
 
-        $courses = $this->buildResults($term,$instructionMode,$session,
-            $days,$query);
+
+        $courses = $this->buildResults($term, $instructionMode, $session,
+            $days, $query);
 
 
         return ['total' => $query->total(),
@@ -248,6 +287,62 @@ class CourseDBController extends BaseCourseController
                     ->with("courses",
                         $courses)->render() : ""];
 
+
+    }
+
+    /**
+     * Build results for the listing page
+     * @param $instructionMode
+     * @param $session
+     * @param $days
+     * @param $result
+     */
+    protected function buildResults($term, $instructionMode,
+                                    $session, $days, $result)
+    {
+
+        $courses = "";
+        foreach ($result as $c) {
+            $x = sprintf("%s %s &mdash; %s",
+                $c->crs_subj_cd, $c->crs_catlg_nbr, $c->crs_desc);
+
+            $subject = explode("-", $c->crs_subj_cd); // extract letter information
+
+            $query_string = "";
+            foreach (['term' => $term, 'instrucMode' => $instructionMode,
+                         'session' => $session,
+                         'days' => $days,
+                         'nbr' =>
+                             $subject[1] . "-" . $c->crs_catlg_nbr,
+                         'dept' => $c['crs_subj_dept_cd']] as $k => $v) {
+
+                if (isset($v) & $v != "") {
+                    if ($query_string != "")
+                        $query_string .= "&";
+
+                    if (!is_array($v))
+                        $query_string .= "$k=$v";
+                    else {
+                        $str = "";
+                        foreach ($v as $item) {
+                            if ($str != "")
+                                $str .= "&";
+                            $str .= "$k" . "[]=" . $item;
+                        }
+                        $query_string .= $str;
+                    }
+                }
+
+            }
+            $link = $_ENV['HOME_PATH'] . "/register/schedule-classes/course.html";
+            if ($query_string != "")
+                $link .= "?" . $query_string;
+
+            $courses[] = ['description' => $x,
+                'link' => $link];
+        }
+
+        return $courses;
 
     }
 
@@ -314,8 +409,8 @@ class CourseDBController extends BaseCourseController
 
         $model = new Models\Course();
 
-        $convert_days="";
-        if(isset($days)){
+        $convert_days = "";
+        if (isset($days)) {
             $CI = $this;
             $convert_days = array_map(function ($day) use ($CI) {
                 return array_search($day, $CI->days);
@@ -323,8 +418,8 @@ class CourseDBController extends BaseCourseController
         }
 
 
-        $data = $model->buildCourses($term,null,$dept,
-            $courseltr,$catalogNbr,$instructionMode,$convert_days,$session);
+        $data = $model->buildCourses($term, null, $dept,
+            $courseltr, $catalogNbr, $instructionMode, $convert_days, $session);
 
         $result = $this->fractal->createData($data['data'])->toArray();
 
@@ -335,64 +430,6 @@ class CourseDBController extends BaseCourseController
         $html .= $this->builder->resultsWrapper($view);
 
         echo $html;
-
-    }
-
-
-
-    /**
-     * Build results for the listing page
-     * @param $instructionMode
-     * @param $session
-     * @param $days
-     * @param $result
-     */
-    protected function buildResults($term, $instructionMode,
-                                    $session, $days, $result)
-    {
-
-        $courses = "";
-        foreach ($result as $c) {
-            $x = sprintf("%s %s &mdash; %s",
-                $c->crs_subj_cd,$c->crs_catlg_nbr,$c->crs_desc);
-
-            $subject = explode("-",$c->crs_subj_cd); // extract letter information
-
-            $query_string = "";
-            foreach (['term' => $term, 'instrucMode' => $instructionMode,
-                         'session' => $session,
-                         'days' => $days,
-                         'nbr' =>
-                             $subject[1] . "-" .$c->crs_catlg_nbr,
-                         'dept' => $c['crs_subj_dept_cd']] as $k => $v) {
-
-                if (isset($v) & $v != "") {
-                    if ($query_string != "")
-                        $query_string .= "&";
-
-                    if (!is_array($v))
-                        $query_string .= "$k=$v";
-                    else {
-                        $str = "";
-                        foreach ($v as $item) {
-                            if ($str != "")
-                                $str .= "&";
-                            $str .= "$k" . "[]=" . $item;
-                        }
-                        $query_string .= $str;
-                    }
-                }
-
-            }
-            $link = $_ENV['HOME_PATH'] . "/register/schedule-classes/course.html";
-            if ($query_string != "")
-                $link .= "?" . $query_string;
-
-            $courses[] = ['description' => $x,
-                'link' => $link];
-        }
-
-        return $courses;
 
     }
 

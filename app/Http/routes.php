@@ -17,15 +17,14 @@ Route::get("/json",function(){
     $job->execute();
 });
 
-
 //Route::group(['prefix'=>'courses'],function() {
-  //  Route::get('/{term}', 'CourseDBController@index');
-    // Route::get('/search/{term}', 'CourseController@search');
+  //Route::get('/{term}', 'CourseDBController@index');
+ //Route::get('/search/{term}', 'CourseController@search');
 //});
 
 Route::group(['prefix'=>'courses'],function() {
-    Route::get('/{term}', 'CourseController@index');
-    Route::get('/{term}/search', 'CourseController@search');
+  Route::get('/{term}', 'CourseController@index');
+  Route::get('/{term}/search', 'CourseController@search');
 });
 
 Route::get('/course', 'CourseController@course');
@@ -39,8 +38,6 @@ Route::group(['prefix'=>'crosslisted'],function() {
 // API routes
 Route::group(['prefix'=>'api'],function(){
 
-    Route::get('/terms', 'TermsController@index');
-    Route::get('/terms/paginate', 'TermsController@paginate');
 
 
     // Grade distribution api

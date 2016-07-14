@@ -43,6 +43,7 @@ class GenerateJSONFiles extends Command
      */
     public function handle()
     {
+
         $job = new Job\GenerateJSONFiles();
         $job->execute();
     }

@@ -219,5 +219,10 @@ return [
 
     ],
 
-    'acadTerms' => [4162,4165,4168]
+    'acadTerms' => [4162,4165,4168],
+
+    /** Key for grade context reports */
+    'confirm_key'=> "pObzXbvWaxs76e2e2wr+D8vy",
+    "master_key" =>"g%cc455{7mgm@p58@*z&)wj",
+    "master_iv"=>"��*�^�R"
 ];

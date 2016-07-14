@@ -35,9 +35,69 @@ class GradeContextReportsController extends Controller
 
         $records = \DB::connection("gradecontextdb")->select($query);
 
-        echo "<pre>";
-        print_r($records);
+        return $records;
+    }
+
+    /***
+     * Get request
+     * @param Request $request
+     */
+    public function getReport(Request $request){
+
+        $term = $request->post('derterm');
+        $auth_key = $request->post('derive');
+        $username = $request->post("derpath");
+        $newid = $request->post("deruid");
+
+        $term_path = $term . "/";
+
+        /** @var NEED TO UPDATE THIS accordingly $DESTDIR */
+        $DESTDIR = "SMB DRIVE PATH OR SFTP PATH ";
+
+        $enc_dir = $DESTDIR . $term_path;
+
+        // determine the filename
+        $filename = $this->obfuscate($term."key.key");
+        $key = file_get_contents($enc_dir . $filename);
+        $key = decrypt_data($key, config('app.master_key'),
+            config('app.master_iv'));
+
+        /** @var IV $filename */
+        $filename = obfuscate($term . "iv.key");
+        $iv = file_get_contents($enc_dir . $filename);
+        $iv = decrypt_data($iv, config('app.master_key'),
+            config('app.master_iv'));
+
+
+        $filename = obfuscate($username);
+
+        //For terms after 4102, determine filename based on UID
+        $filename2 = obfuscate($newid);
+
+        if (file_exists($enc_dir . $filename)){
+
+            $data = file_get_contents($enc_dir . $filename);
+            $data = decrypt_data($data, $key, $iv);
+
+            $headers = array(
+                "Pragma: public",
+                "Cache-Control: public",
+                "Content-Disposition: attachment; filename=".$filename2."",
+                'Content-Length: '. filesize($enc_dir . $filename)
+            );
+
+            return response()->download($enc_dir . $filename, $filename2, $headers);
+
+        }
+    }
+
+    private function obfuscate($string){
+
+            $obfuscated = md5($string);
+            $obfuscated = sha1($obfuscated);
+            return($obfuscated);
 
     }
+
 
 }

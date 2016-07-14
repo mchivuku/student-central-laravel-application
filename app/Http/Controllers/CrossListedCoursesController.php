@@ -107,14 +107,14 @@ class CrossListedCoursesController extends BaseCourseController
         });
 
         $all = collect($all)->filter(function ($course) use ($acadTerm) {
-            if (!isset($acadTerm) || $acadTerm=="") return true;
+            if (!isset($acadTerm) || $acadTerm=="" || stripos($acadTerm,"all")!==false) return true;
 
             if ($course['term']['term'] == $acadTerm)
                 return true;
 
             return false;
         })->filter(function ($course) use ($dept) {
-            if (!isset($dept)) return true;
+            if (!isset($dept) || $dept=="" || stripos($dept,"all")!==false) return true;
 
             if ($course['department'] == $dept)
                 return true;

@@ -60,7 +60,7 @@ class GenerateJSONFiles extends Job
                 $all_courses = [];
 
                 $term_info = Models\TermDescription::acadTerm($term)->first();
-                $term_folder_path = $this->makeTermFolder($term, $path);
+                 $term_folder_path = $this->makeTermFolder($term, $path);
 
                 foreach ($departments as $dept) {
 
@@ -88,24 +88,43 @@ class GenerateJSONFiles extends Job
 
         $this->saveJsonToFile($path, 'crosslisted_courses',
             $this->fractal->createData($data)->toJson());
+
+
+        /** Move current - folder to back and move today to current
+         ** this is to make sure site is not down while job is running.
+         */
+        $current_path = storage_path() . "/courses/current";
+        $this->runProcess('mv  ' . $current_path . "  " . storage_path()
+            . "/courses/backup/courses_" . date('m-d-Y_Hi'));
+        $this->runProcess('mv  ' . $path . "  " . storage_path()
+            . "/courses/current");
+
+
     }
 
     /** Make  */
+    /**
+     * 1. Create a folder today
+     * 2. Build json files
+     * 3. After job is complete move - current - backup
+     * 4. Rename today - to current.
+     * @return bool|string
+     * @throws \Exception
+     */
     protected
     function makeCoursesFolder()
     {
-        $path = storage_path() . "/courses/current";
+
+        $path = storage_path() . "/courses/today";
 
         // move the current folder to backup
-        if (file_exists($path))
-            $this->runProcess('mv  ' . $path . "  " . storage_path()
-                . "/courses/backup/courses_" . date('m-d-Y_Hi'));
+        if (!file_exists($path)){
+            // create new current folder.
+            $process = $this->runProcess('mkdir ' . $path);
+            if ($process) return $path;
+        }
 
-        // create new current folder.
-        $process = $this->runProcess('mkdir ' . $path);
-        if ($process) return $path;
-
-        return false;
+        return $path;
     }
 
     /** Helper Functions */
@@ -155,7 +174,7 @@ class GenerateJSONFiles extends Job
         if (isset($data)){
             $this->saveJsonToFile($term_folder_path,
                 $dept->crs_subj_dept_cd,
-                ($this->fractal->createData($data['data'])->toJson()));
+                 ($this->fractal->createData($data['data'])->toJson()));
             $allcourses[$dept->crs_subj_dept_cd] =
                 ["department" => $dept->crs_subj_dept_cd,
                 "courses" => $data['courses']];
@@ -163,7 +182,7 @@ class GenerateJSONFiles extends Job
         }
 
 
-        echo $dept->crs_subj_dept_cd . " created the file" . PHP_EOL;
+       // echo $dept->crs_subj_dept_cd . " created the file" . PHP_EOL;
 
 
 
@@ -324,4 +343,7 @@ class GenerateJSONFiles extends Job
                 }, $courses)];
 
     }
+
+
+
 }
