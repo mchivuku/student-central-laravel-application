@@ -46,6 +46,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        /** @var Data ware house has some weird hour schedule during weekends $weekDay */
+        $weekDay = date('w');
+        if($weekDay == 0 || $weekDay == 6)
+            return;
+
             $schedule->command('import:coursedb')->before(function () {
                  Artisan::call('job:BackupDB');
                  echo 'Completed backup';
