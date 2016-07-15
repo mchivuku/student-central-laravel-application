@@ -34,7 +34,6 @@ class CrossListedCoursesController extends BaseCourseController
             ->attribute('action',
                 $_ENV['HOME_PATH'] . '/register/schedule-classes/crosslisted-courses.html')
             ->attribute('method', 'GET')
-            ->addClass('hide-labels')
             ->attribute('data-api', $_ENV['HOME_PATH'] .
                 '/_php/laravel-app/public/crosslisted');
         $html .= $this->builder->formWrapperOpen()->addClass('halves');
